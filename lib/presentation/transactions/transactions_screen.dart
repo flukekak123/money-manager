@@ -1,0 +1,101 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../../application/providers.dart';
+import '../../domain/entities.dart';
+import '../widgets/empty_state.dart';
+import 'transaction_edit_screen.dart';
+import 'transaction_tile.dart';
+
+class TransactionsScreen extends ConsumerWidget {
+  const TransactionsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final txnsAsync = ref.watch(allTransactionsProvider);
+    final catsById = ref.watch(categoriesByIdProvider);
+
+    return txnsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      data: (txns) {
+        if (txns.isEmpty) {
+          return const EmptyState(
+            icon: Icons.receipt_long_outlined,
+            message: 'No transactions yet',
+            hint: 'Tap Add to record your first transaction.',
+          );
+        }
+        // Group by day.
+        final groups = <String, List<TransactionEntry>>{};
+        for (final t in txns) {
+          final key = DateFormat.yMMMEd().format(t.date);
+          groups.putIfAbsent(key, () => []).add(t);
+        }
+        final dayKeys = groups.keys.toList();
+
+        return ListView.builder(
+          itemCount: dayKeys.length,
+          itemBuilder: (context, i) {
+            final day = dayKeys[i];
+            final items = groups[day]!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                  child: Text(day,
+                      style: Theme.of(context).textTheme.labelLarge),
+                ),
+                ...items.map((t) => Dismissible(
+                      key: Key('dismiss-${t.id}'),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (_) => _confirmDelete(context),
+                      onDismissed: (_) => ref
+                          .read(transactionControllerProvider)
+                          .delete(t.id),
+                      child: TransactionTile(
+                        entry: t,
+                        category: catsById[t.categoryId],
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                TransactionEditScreen(existing: t),
+                          ),
+                        ),
+                      ),
+                    )),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete transaction?'),
+        content: const Text('This cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Delete')),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+}
