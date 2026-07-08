@@ -94,6 +94,25 @@ older versions if the JSON shape changes. UI is the Settings "Data" section
 (`BackupController` uses `file_saver`/`file_picker`, works web + mobile). This is
 the mitigation for browser storage eviction — keep it working on web.
 
+## Localization (i18n)
+
+English + Thai via Flutter `gen-l10n`. Strings live in `lib/l10n/app_en.arb`
+(template) and `app_th.arb`; generated code lands in `lib/l10n/gen/` (config in
+`l10n.yaml`, `generate: true` in pubspec). Access with
+`AppLocalizations.of(context).<key>` — it is non-null (`nullable-getter: false`).
+
+- **Add a string**: add the key to *both* ARB files (with `@key` placeholder
+  metadata if it interpolates), run `flutter gen-l10n`, then use it. `flutter
+  build`/`run` also regenerates.
+- **Add a language**: create `app_<code>.arb`, and it auto-joins
+  `AppLocalizations.supportedLocales`; add it to the Settings `_languages` map.
+- Language is a setting (`AppSettings.languageCode`, persisted) driving
+  `MaterialApp.locale`; picker is in Settings. Enum-ish UI labels (theme mode,
+  wallet type) map through local `switch` helpers, not `.name`.
+- **Seed DB data is NOT localized** — category/wallet names are user data.
+- ⚠️ `intl` is pinned to exactly `0.20.2` because `flutter_localizations` pins
+  it; don't bump to `^0.20.3` or `pub get` breaks.
+
 ## Conventions & invariants
 
 - **Money is always integer minor units** (cents), never `double`. Format/parse
