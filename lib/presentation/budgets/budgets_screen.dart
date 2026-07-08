@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers.dart';
 import '../../domain/entities.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/money_text.dart';
 
@@ -14,16 +15,17 @@ class BudgetsScreen extends ConsumerWidget {
     final month = ref.watch(selectedMonthProvider);
     final progress = ref.watch(budgetProgressProvider(month));
     final catsById = ref.watch(categoriesByIdProvider);
+    final l = AppLocalizations.of(context);
 
     return Column(
       children: [
         _MonthBar(month: month),
         Expanded(
           child: progress.isEmpty
-              ? const EmptyState(
+              ? EmptyState(
                   icon: Icons.pie_chart_outline,
-                  message: 'No budgets for this month',
-                  hint: 'Tap + to set a monthly limit for a category.',
+                  message: l.noBudgets,
+                  hint: l.tapPlusBudget,
                 )
               : ListView(
                   padding: const EdgeInsets.all(8),
@@ -41,7 +43,7 @@ class BudgetsScreen extends ConsumerWidget {
             key: const Key('add-budget-button'),
             onPressed: () => _showBudgetDialog(context, ref, month),
             icon: const Icon(Icons.add),
-            label: const Text('Add / Update Budget'),
+            label: Text(l.addUpdateBudget),
           ),
         ),
       ],
@@ -59,18 +61,19 @@ class BudgetsScreen extends ConsumerWidget {
     int? categoryId = expenseCats.first.id;
     final limitCtrl = TextEditingController();
     String? error;
+    final l = AppLocalizations.of(context);
 
     await showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: const Text('Budget'),
+          title: Text(l.budget),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<int>(
                 initialValue: categoryId,
-                decoration: const InputDecoration(labelText: 'Category'),
+                decoration: InputDecoration(labelText: l.category),
                 items: expenseCats
                     .map((c) =>
                         DropdownMenuItem(value: c.id, child: Text(c.name)))
@@ -81,7 +84,7 @@ class BudgetsScreen extends ConsumerWidget {
                 controller: limitCtrl,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Monthly limit'),
+                decoration: InputDecoration(labelText: l.monthlyLimit),
               ),
               if (error != null)
                 Padding(
@@ -95,7 +98,7 @@ class BudgetsScreen extends ConsumerWidget {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel')),
+                child: Text(l.cancel)),
             FilledButton(
               onPressed: () async {
                 final cats = ref.read(categoriesByIdProvider);
@@ -112,7 +115,7 @@ class BudgetsScreen extends ConsumerWidget {
                   setLocal(() => error = e.message);
                 }
               },
-              child: const Text('Save'),
+              child: Text(l.save),
             ),
           ],
         ),
@@ -170,7 +173,7 @@ class _BudgetRow extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(category?.name ?? 'Category',
+                Text(category?.name ?? AppLocalizations.of(context).category,
                     style: Theme.of(context).textTheme.titleSmall),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
@@ -196,7 +199,7 @@ class _BudgetRow extends ConsumerWidget {
                 Text(
                   progress.remainingMinor >= 0
                       ? '${(pct * 100).toStringAsFixed(0)}%'
-                      : 'Over',
+                      : AppLocalizations.of(context).over,
                   style: TextStyle(color: color, fontWeight: FontWeight.w600),
                 ),
               ],

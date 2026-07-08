@@ -172,21 +172,27 @@ class AppSettings {
     required this.currencyCode,
     required this.themeMode,
     required this.appLockEnabled,
+    this.languageCode = 'en',
   });
 
   final String currencyCode;
   final AppThemeMode themeMode;
   final bool appLockEnabled;
 
+  /// UI language: 'en' or 'th'.
+  final String languageCode;
+
   AppSettings copyWith({
     String? currencyCode,
     AppThemeMode? themeMode,
     bool? appLockEnabled,
+    String? languageCode,
   }) =>
       AppSettings(
         currencyCode: currencyCode ?? this.currencyCode,
         themeMode: themeMode ?? this.themeMode,
         appLockEnabled: appLockEnabled ?? this.appLockEnabled,
+        languageCode: languageCode ?? this.languageCode,
       );
 }
 

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/providers.dart';
 import '../../domain/entities.dart';
+import '../../l10n/gen/app_localizations.dart';
 
 class TransactionEditScreen extends ConsumerStatefulWidget {
   const TransactionEditScreen({super.key, this.existing});
@@ -57,7 +58,8 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
     final category = cats[_categoryId];
     final wallet = wallets[_walletId];
     if (category == null || wallet == null) {
-      setState(() => _error = 'Select a category and wallet.');
+      setState(() =>
+          _error = AppLocalizations.of(context).selectCategoryAndWallet);
       return;
     }
 
@@ -91,6 +93,7 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
     final wallets = ref.watch(walletsProvider).asData?.value ?? const <Wallet>[];
     final kindCats =
         categories.where((c) => c.kind == _kind).toList();
+    final l = AppLocalizations.of(context);
 
     // Reset category if it no longer matches the selected kind.
     if (_categoryId != null &&
@@ -100,7 +103,7 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Transaction' : 'Add Transaction'),
+        title: Text(_isEditing ? l.editTransaction : l.addTransaction),
         actions: [
           if (_isEditing)
             IconButton(
@@ -116,15 +119,15 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             SegmentedButton<TransactionKind>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                     value: TransactionKind.expense,
-                    icon: Icon(Icons.arrow_upward),
-                    label: Text('Expense')),
+                    icon: const Icon(Icons.arrow_upward),
+                    label: Text(l.expense)),
                 ButtonSegment(
                     value: TransactionKind.income,
-                    icon: Icon(Icons.arrow_downward),
-                    label: Text('Income')),
+                    icon: const Icon(Icons.arrow_downward),
+                    label: Text(l.income)),
               ],
               selected: {_kind},
               onSelectionChanged: (s) => setState(() => _kind = s.first),
@@ -135,21 +138,21 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
               controller: _amountCtrl,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                prefixIcon: Icon(Icons.attach_money),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l.amount,
+                prefixIcon: const Icon(Icons.attach_money),
+                border: const OutlineInputBorder(),
               ),
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Enter an amount' : null,
+                  (v == null || v.trim().isEmpty) ? l.enterAmount : null,
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
               key: const Key('category-dropdown'),
               initialValue: _categoryId,
-              decoration: const InputDecoration(
-                labelText: 'Category',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l.category,
+                border: const OutlineInputBorder(),
               ),
               items: kindCats
                   .map((c) => DropdownMenuItem(
@@ -158,15 +161,15 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
                       ))
                   .toList(),
               onChanged: (v) => setState(() => _categoryId = v),
-              validator: (v) => v == null ? 'Select a category' : null,
+              validator: (v) => v == null ? l.selectCategory : null,
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
               key: const Key('wallet-dropdown'),
               initialValue: _walletId,
-              decoration: const InputDecoration(
-                labelText: 'Wallet',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l.wallet,
+                border: const OutlineInputBorder(),
               ),
               items: wallets
                   .map((w) => DropdownMenuItem(
@@ -175,7 +178,7 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
                       ))
                   .toList(),
               onChanged: (v) => setState(() => _walletId = v),
-              validator: (v) => v == null ? 'Select a wallet' : null,
+              validator: (v) => v == null ? l.selectWallet : null,
             ),
             const SizedBox(height: 16),
             ListTile(
@@ -201,9 +204,9 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
               key: const Key('note-field'),
               controller: _noteCtrl,
               maxLength: 200,
-              decoration: const InputDecoration(
-                labelText: 'Note (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l.noteOptional,
+                border: const OutlineInputBorder(),
               ),
             ),
             if (_error != null) ...[
@@ -216,7 +219,7 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
               key: const Key('save-transaction-button'),
               onPressed: _save,
               icon: const Icon(Icons.check),
-              label: const Text('Save'),
+              label: Text(l.save),
             ),
           ],
         ),

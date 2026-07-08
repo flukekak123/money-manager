@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../application/providers.dart';
 import '../../core/date_utils.dart';
 import '../../domain/entities.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../transactions/transaction_edit_screen.dart';
 import '../transactions/transaction_tile.dart';
 import '../widgets/empty_state.dart';
@@ -19,6 +20,7 @@ class HomeScreen extends ConsumerWidget {
     final budgets = ref.watch(budgetProgressProvider(month));
     final txnsAsync = ref.watch(monthTransactionsProvider(month));
     final catsById = ref.watch(categoriesByIdProvider);
+    final l = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -26,7 +28,7 @@ class HomeScreen extends ConsumerWidget {
         _SummaryCard(summary: summary),
         const SizedBox(height: 16),
         if (budgets.isNotEmpty) ...[
-          Text('Budgets', style: Theme.of(context).textTheme.titleMedium),
+          Text(l.navBudgets, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           ...budgets.take(3).map((p) => _BudgetMiniRow(
                 progress: p,
@@ -34,18 +36,18 @@ class HomeScreen extends ConsumerWidget {
               )),
           const SizedBox(height: 16),
         ],
-        Text('Recent', style: Theme.of(context).textTheme.titleMedium),
+        Text(l.recent, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         txnsAsync.when(
           loading: () => const Center(child: Padding(
             padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
-          error: (e, _) => Text('Error: $e'),
+          error: (e, _) => Text(l.errorWithMessage('$e')),
           data: (txns) {
             if (txns.isEmpty) {
-              return const EmptyState(
+              return EmptyState(
                 icon: Icons.receipt_long_outlined,
-                message: 'No transactions yet',
-                hint: 'Tap Add to record income or an expense.',
+                message: l.noTransactionsYet,
+                hint: l.tapAddToRecord,
               );
             }
             return Column(
@@ -75,20 +77,21 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('This month', style: Theme.of(context).textTheme.labelLarge),
+            Text(l.thisMonth, style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _Metric(label: 'Income', amountMinor: summary.incomeMinor),
-                _Metric(label: 'Expense', amountMinor: -summary.expenseMinor),
-                _Metric(label: 'Balance', amountMinor: summary.netMinor, bold: true),
+                _Metric(label: l.income, amountMinor: summary.incomeMinor),
+                _Metric(label: l.expense, amountMinor: -summary.expenseMinor),
+                _Metric(label: l.balance, amountMinor: summary.netMinor, bold: true),
               ],
             ),
           ],
@@ -144,7 +147,7 @@ class _BudgetMiniRow extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(category?.name ?? 'Category'),
+              Text(category?.name ?? AppLocalizations.of(context).category),
               MoneyText(progress.spentMinor,
                   style: Theme.of(context).textTheme.bodySmall),
             ],

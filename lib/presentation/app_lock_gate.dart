@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/providers.dart';
+import '../l10n/gen/app_localizations.dart';
 
 /// Gates the app behind biometric/device auth when app lock is enabled.
 class AppLockGate extends ConsumerStatefulWidget {
@@ -53,14 +54,14 @@ class _AppLockGateState extends ConsumerState<AppLockGate> {
           children: [
             const Icon(Icons.lock_outline, size: 72),
             const SizedBox(height: 16),
-            Text('Money Manager is locked',
+            Text(AppLocalizations.of(context).appLockedTitle,
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 24),
             FilledButton.icon(
               key: const Key('app-lock-unlock-button'),
               onPressed: _authInProgress ? null : _authenticate,
               icon: const Icon(Icons.fingerprint),
-              label: const Text('Unlock'),
+              label: Text(AppLocalizations.of(context).unlock),
             ),
           ],
         ),

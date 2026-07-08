@@ -7,6 +7,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
   static const _kCurrency = 'currencyCode';
   static const _kTheme = 'themeMode';
   static const _kLock = 'appLockEnabled';
+  static const _kLanguage = 'languageCode';
 
   @override
   Future<AppSettings> load() async {
@@ -16,6 +17,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
       themeMode: AppThemeMode
           .values[prefs.getInt(_kTheme) ?? AppThemeMode.system.index],
       appLockEnabled: prefs.getBool(_kLock) ?? false,
+      languageCode: prefs.getString(_kLanguage) ?? 'en',
     );
   }
 
@@ -25,5 +27,6 @@ class SettingsRepositoryImpl implements SettingsRepository {
     await prefs.setString(_kCurrency, s.currencyCode);
     await prefs.setInt(_kTheme, s.themeMode.index);
     await prefs.setBool(_kLock, s.appLockEnabled);
+    await prefs.setString(_kLanguage, s.languageCode);
   }
 }

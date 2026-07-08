@@ -185,3 +185,16 @@
 **Extension Compliance**: Security N/A (OFF), Resiliency N/A (OFF), PBT N/A (OFF)
 
 ---
+
+# ═══ CHANGE CYCLE 3: Thai Language (i18n) ═══
+
+## Initial Request + Requirements (Cycle 3)
+**Timestamp**: 2026-07-08T00:00:00Z
+**User Input**: "let make can change language to thai"
+**AI Response**: "Brownfield feature. Scoped ~55-70 UI strings across 15 presentation files. Approach: Flutter gen-l10n (ARB app_en/app_th), flutter_localizations, language setting, MaterialApp.locale. Asked 2 scope decisions."
+**User Input 2**: Languages = English/ไทย only (two-way toggle, no system-follow); Seed data = leave as-is (translate UI chrome only).
+**AI Response 3**: "Recorded. FR: (1) English/Thai UI via gen-l10n; (2) language persisted in AppSettings; (3) Settings language picker; (4) app-wide MaterialApp locale; (5) seed DB data untouched. Proceeding to implementation (lean single-unit)."
+**Context**: INCEPTION+CONSTRUCTION - Cycle 3 i18n
+**Extension Compliance**: Security N/A (OFF), Resiliency N/A (OFF), PBT N/A (OFF)
+
+---

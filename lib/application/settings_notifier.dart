@@ -31,4 +31,10 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
     if (current == null) return;
     await _persist(current.copyWith(appLockEnabled: enabled));
   }
+
+  Future<void> setLanguage(String languageCode) async {
+    final current = state.asData?.value;
+    if (current == null) return;
+    await _persist(current.copyWith(languageCode: languageCode));
+  }
 }

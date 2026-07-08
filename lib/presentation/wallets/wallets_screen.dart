@@ -3,8 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers.dart';
 import '../../domain/entities.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../theme.dart';
 import '../widgets/money_text.dart';
+
+/// Localized label for a wallet type.
+String walletTypeLabel(AppLocalizations l, WalletType type) => switch (type) {
+      WalletType.cash => l.walletTypeCash,
+      WalletType.bank => l.walletTypeBank,
+      WalletType.card => l.walletTypeCard,
+      WalletType.other => l.walletTypeOther,
+    };
 
 class WalletsScreen extends ConsumerWidget {
   const WalletsScreen({super.key});
@@ -12,9 +21,10 @@ class WalletsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wallets = ref.watch(walletsProvider);
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Wallets')),
+      appBar: AppBar(title: Text(l.wallets)),
       floatingActionButton: FloatingActionButton(
         key: const Key('add-wallet-fab'),
         onPressed: () => _showWalletDialog(context, ref),
@@ -22,7 +32,7 @@ class WalletsScreen extends ConsumerWidget {
       ),
       body: wallets.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(l.errorWithMessage('$e'))),
         data: (list) => ListView(
           children: list
               .map((w) => _WalletTile(wallet: w))
@@ -37,25 +47,27 @@ class WalletsScreen extends ConsumerWidget {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     var type = existing?.type ?? WalletType.cash;
     String? error;
+    final l = AppLocalizations.of(context);
 
     await showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: Text(existing == null ? 'New Wallet' : 'Edit Wallet'),
+          title: Text(existing == null ? l.newWallet : l.editWallet),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(labelText: l.name),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<WalletType>(
                 initialValue: type,
-                decoration: const InputDecoration(labelText: 'Type'),
+                decoration: InputDecoration(labelText: l.type),
                 items: WalletType.values
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
+                    .map((t) => DropdownMenuItem(
+                        value: t, child: Text(walletTypeLabel(l, t))))
                     .toList(),
                 onChanged: (v) => type = v ?? WalletType.cash,
               ),
@@ -71,7 +83,7 @@ class WalletsScreen extends ConsumerWidget {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel')),
+                child: Text(l.cancel)),
             FilledButton(
               onPressed: () async {
                 try {
@@ -88,7 +100,7 @@ class WalletsScreen extends ConsumerWidget {
                   setLocal(() => error = e.message);
                 }
               },
-              child: const Text('Save'),
+              child: Text(l.save),
             ),
           ],
         ),
@@ -111,7 +123,7 @@ class _WalletTile extends ConsumerWidget {
             color: Color(wallet.colorValue)),
       ),
       title: Text(wallet.name),
-      subtitle: Text(wallet.type.name),
+      subtitle: Text(walletTypeLabel(AppLocalizations.of(context), wallet.type)),
       trailing: balance.when(
         loading: () => const SizedBox(
             width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
@@ -125,6 +137,7 @@ class _WalletTile extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final action = await showModalBottomSheet<String>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -133,12 +146,12 @@ class _WalletTile extends ConsumerWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.archive_outlined),
-              title: const Text('Archive'),
+              title: Text(l.archive),
               onTap: () => Navigator.pop(ctx, 'archive'),
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline),
-              title: const Text('Delete'),
+              title: Text(l.delete),
               onTap: () => Navigator.pop(ctx, 'delete'),
             ),
           ],

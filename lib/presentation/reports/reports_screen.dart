@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/providers.dart';
 import '../../domain/entities.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/money_text.dart';
 
@@ -19,6 +20,7 @@ class ReportsScreen extends ConsumerWidget {
     final trend = ref.watch(trendProvider(month));
     final catsById = ref.watch(categoriesByIdProvider);
     final notifier = ref.read(selectedMonthProvider.notifier);
+    final l = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -38,24 +40,24 @@ class ReportsScreen extends ConsumerWidget {
         const SizedBox(height: 8),
         _SummaryStrip(summary: summary),
         const SizedBox(height: 24),
-        Text('Spending by category',
+        Text(l.spendingByCategory,
             style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         if (byCategory.isEmpty)
-          const EmptyState(
+          EmptyState(
             icon: Icons.pie_chart_outline,
-            message: 'No expenses this month',
+            message: l.noExpensesThisMonth,
           )
         else
           _CategoryPie(spend: byCategory, catsById: catsById),
         const SizedBox(height: 24),
-        Text('Income vs expense',
+        Text(l.incomeVsExpense,
             style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         if (trend.isEmpty)
-          const EmptyState(
+          EmptyState(
             icon: Icons.bar_chart_outlined,
-            message: 'No data this month',
+            message: l.noDataThisMonth,
           )
         else
           _TrendBars(points: trend),
@@ -70,6 +72,7 @@ class _SummaryStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     Widget cell(String label, int amount) => Column(
           children: [
             Text(label, style: Theme.of(context).textTheme.bodySmall),
@@ -85,9 +88,9 @@ class _SummaryStrip extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            cell('Income', summary.incomeMinor),
-            cell('Expense', -summary.expenseMinor),
-            cell('Net', summary.netMinor),
+            cell(l.income, summary.incomeMinor),
+            cell(l.expense, -summary.expenseMinor),
+            cell(l.net, summary.netMinor),
           ],
         ),
       ),
@@ -137,7 +140,7 @@ class _CategoryPie extends StatelessWidget {
           return ListTile(
             dense: true,
             leading: CircleAvatar(backgroundColor: color, radius: 8),
-            title: Text(cat?.name ?? 'Category'),
+            title: Text(cat?.name ?? AppLocalizations.of(context).category),
             trailing: MoneyText(s.totalMinor),
           );
         }),

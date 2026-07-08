@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers.dart';
 import '../../domain/entities.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../categories/categories_screen.dart';
 import '../wallets/wallets_screen.dart';
 
@@ -12,36 +13,60 @@ class SettingsScreen extends ConsumerWidget {
 
   static const _currencies = ['USD', 'EUR', 'GBP', 'JPY', 'THB', 'INR', 'AUD', 'CAD'];
 
+  // Language names are shown in their own script (self-endonyms).
+  static const _languages = {'en': 'English', 'th': 'ไทย'};
+
+  String _themeLabel(AppLocalizations l, AppThemeMode m) => switch (m) {
+        AppThemeMode.system => l.themeSystem,
+        AppThemeMode.light => l.themeLight,
+        AppThemeMode.dark => l.themeDark,
+      };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
+    final l = AppLocalizations.of(context);
 
     return settingsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      error: (e, _) => Center(child: Text(l.errorWithMessage('$e'))),
       data: (settings) => ListView(
         children: [
-          const _SectionHeader('Manage'),
+          _SectionHeader(l.manage),
           ListTile(
             leading: const Icon(Icons.account_balance_wallet_outlined),
-            title: const Text('Wallets'),
+            title: Text(l.wallets),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const WalletsScreen())),
           ),
           ListTile(
             leading: const Icon(Icons.category_outlined),
-            title: const Text('Categories'),
+            title: Text(l.categories),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const CategoriesScreen())),
           ),
           const Divider(),
-          const _SectionHeader('Preferences'),
+          _SectionHeader(l.preferences),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(l.language),
+            trailing: DropdownButton<String>(
+              value: settings.languageCode,
+              items: _languages.entries
+                  .map((e) =>
+                      DropdownMenuItem(value: e.key, child: Text(e.value)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) notifier.setLanguage(v);
+              },
+            ),
+          ),
           ListTile(
             leading: const Icon(Icons.attach_money),
-            title: const Text('Currency'),
+            title: Text(l.currency),
             trailing: DropdownButton<String>(
               value: _currencies.contains(settings.currencyCode)
                   ? settings.currencyCode
@@ -57,11 +82,12 @@ class SettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.brightness_6_outlined),
-            title: const Text('Theme'),
+            title: Text(l.theme),
             trailing: DropdownButton<AppThemeMode>(
               value: settings.themeMode,
               items: AppThemeMode.values
-                  .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
+                  .map((m) => DropdownMenuItem(
+                      value: m, child: Text(_themeLabel(l, m))))
                   .toList(),
               onChanged: (v) {
                 if (v != null) notifier.setThemeMode(v);
@@ -72,22 +98,20 @@ class SettingsScreen extends ConsumerWidget {
           if (!kIsWeb)
             SwitchListTile(
               secondary: const Icon(Icons.lock_outline),
-              title: const Text('App lock'),
-              subtitle: const Text('Require biometric/device unlock on launch'),
+              title: Text(l.appLock),
+              subtitle: Text(l.appLockSubtitle),
               value: settings.appLockEnabled,
               onChanged: (v) => notifier.setAppLockEnabled(v),
             ),
           const Divider(),
-          const _SectionHeader('Data'),
+          _SectionHeader(l.dataSection),
           _BackupTiles(),
           const Divider(),
-          const AboutListTile(
-            icon: Icon(Icons.info_outline),
-            applicationName: 'Money Manager',
+          AboutListTile(
+            icon: const Icon(Icons.info_outline),
+            applicationName: l.appTitle,
             applicationVersion: '1.0.0',
-            aboutBoxChildren: [
-              Text('Offline-first personal finance app. Data stays on device.'),
-            ],
+            aboutBoxChildren: [Text(l.aboutBody)],
           ),
         ],
       ),
@@ -100,18 +124,19 @@ class SettingsScreen extends ConsumerWidget {
 class _BackupTiles extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     return Column(
       children: [
         ListTile(
           leading: const Icon(Icons.download_outlined),
-          title: const Text('Export data'),
-          subtitle: const Text('Save a JSON backup of all your data'),
+          title: Text(l.exportData),
+          subtitle: Text(l.exportDataSubtitle),
           onTap: () => _export(context, ref),
         ),
         ListTile(
           leading: const Icon(Icons.upload_outlined),
-          title: const Text('Import data'),
-          subtitle: const Text('Restore from a JSON backup (replaces all data)'),
+          title: Text(l.importData),
+          subtitle: Text(l.importDataSubtitle),
           onTap: () => _import(context, ref),
         ),
       ],
@@ -119,34 +144,32 @@ class _BackupTiles extends ConsumerWidget {
   }
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(backupControllerProvider).export();
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Backup exported.')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l.backupExported)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(l.exportFailed('$e'))));
     }
   }
 
   Future<void> _import(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Replace all data?'),
-        content: const Text(
-            'Importing a backup will permanently replace all current wallets, '
-            'categories, transactions, and budgets. This cannot be undone.'),
+        title: Text(l.replaceAllData),
+        content: Text(l.replaceAllDataBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Replace'),
+            child: Text(l.replace),
           ),
         ],
       ),
@@ -156,12 +179,10 @@ class _BackupTiles extends ConsumerWidget {
     try {
       final done = await ref.read(backupControllerProvider).import();
       if (done) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Backup restored.')),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(l.backupRestored)));
       }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Import failed: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(l.importFailed('$e'))));
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/providers.dart';
 import '../../domain/entities.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../widgets/empty_state.dart';
 import 'transaction_edit_screen.dart';
 import 'transaction_tile.dart';
@@ -15,16 +16,17 @@ class TransactionsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final txnsAsync = ref.watch(allTransactionsProvider);
     final catsById = ref.watch(categoriesByIdProvider);
+    final l = AppLocalizations.of(context);
 
     return txnsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      error: (e, _) => Center(child: Text(l.errorWithMessage('$e'))),
       data: (txns) {
         if (txns.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.receipt_long_outlined,
-            message: 'No transactions yet',
-            hint: 'Tap Add to record your first transaction.',
+            message: l.noTransactionsYet,
+            hint: l.tapAddFirst,
           );
         }
         // Group by day.
@@ -81,18 +83,19 @@ class TransactionsScreen extends ConsumerWidget {
   }
 
   Future<bool> _confirmDelete(BuildContext context) async {
+    final l = AppLocalizations.of(context);
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete transaction?'),
-        content: const Text('This cannot be undone.'),
+        title: Text(l.deleteTransactionTitle),
+        content: Text(l.cannotBeUndone),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(l.cancel)),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete')),
+              child: Text(l.delete)),
         ],
       ),
     );

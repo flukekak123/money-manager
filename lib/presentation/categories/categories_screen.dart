@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers.dart';
 import '../../domain/entities.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../widgets/category_avatar.dart';
 
 class CategoriesScreen extends ConsumerWidget {
@@ -10,13 +11,14 @@ class CategoriesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Categories'),
-          bottom: const TabBar(
-            tabs: [Tab(text: 'Expense'), Tab(text: 'Income')],
+          title: Text(l.categories),
+          bottom: TabBar(
+            tabs: [Tab(text: l.expense), Tab(text: l.income)],
           ),
         ),
         floatingActionButton: Builder(
@@ -48,17 +50,18 @@ class CategoriesScreen extends ConsumerWidget {
       {Category? existing}) async {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     String? error;
+    final l = AppLocalizations.of(context);
     await showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: Text(existing == null ? 'New Category' : 'Edit Category'),
+          title: Text(existing == null ? l.newCategory : l.editCategory),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(labelText: l.name),
               ),
               if (error != null)
                 Padding(
@@ -72,7 +75,7 @@ class CategoriesScreen extends ConsumerWidget {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel')),
+                child: Text(l.cancel)),
             FilledButton(
               onPressed: () async {
                 try {
@@ -90,7 +93,7 @@ class CategoriesScreen extends ConsumerWidget {
                   setLocal(() => error = e.message);
                 }
               },
-              child: const Text('Save'),
+              child: Text(l.save),
             ),
           ],
         ),
@@ -106,9 +109,10 @@ class _CategoryList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cats = ref.watch(categoriesProvider);
+    final l = AppLocalizations.of(context);
     return cats.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      error: (e, _) => Center(child: Text(l.errorWithMessage('$e'))),
       data: (list) {
         final filtered = list.where((c) => c.kind == kind).toList();
         return ListView(
@@ -117,7 +121,7 @@ class _CategoryList extends ConsumerWidget {
                     leading: CategoryAvatar(category: c),
                     title: Text(c.name),
                     trailing: c.isDefault
-                        ? const Chip(label: Text('default'))
+                        ? Chip(label: Text(l.defaultLabel))
                         : IconButton(
                             icon: const Icon(Icons.delete_outline),
                             onPressed: () async {
