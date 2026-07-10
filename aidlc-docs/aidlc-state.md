@@ -29,7 +29,7 @@
 
 ## Current Status
 - **Lifecycle Phase**: CONSTRUCTION (Cycle 4 — Installment expenses)
-- **Current Stage**: Cycle 5 COMPLETE (commit 64930ac)
+- **Current Stage**: Cycle 5 COMPLETE (commit 08f12da)
 - **Next Stage**: idle — awaiting next request
 - **Cycle 1 (v1 app)**: Complete
 - **Cycle 2 (Web/PWA + Backup)**: Complete
