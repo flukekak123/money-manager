@@ -90,6 +90,7 @@ class TransactionEntry {
     this.note,
     this.installmentPlanId,
     this.installmentNo,
+    this.subscriptionId,
   });
 
   final int id;
@@ -99,6 +100,12 @@ class TransactionEntry {
   final int walletId;
   final DateTime date;
   final String? note;
+
+  /// Non-null when this entry is an auto-recorded subscription charge.
+  /// Such entries are managed through the subscription only (BR-SB4).
+  final int? subscriptionId;
+
+  bool get isSubscriptionCharge => subscriptionId != null;
 
   /// Non-null when this entry was generated from an [InstallmentPlan].
   /// Such entries are managed through the plan only (BR-I4).
@@ -226,6 +233,65 @@ class AppSettings {
         themeMode: themeMode ?? this.themeMode,
         appLockEnabled: appLockEnabled ?? this.appLockEnabled,
         languageCode: languageCode ?? this.languageCode,
+      );
+}
+
+/// A recurring monthly expense (BR-SB1..BR-SB9). Charges are materialized as
+/// real expense transactions when the app opens (no background scheduler).
+class Subscription {
+  const Subscription({
+    required this.id,
+    required this.name,
+    required this.amountMinor,
+    required this.categoryId,
+    required this.walletId,
+    required this.startDate,
+    required this.createdAt,
+    this.note,
+    this.active = true,
+    this.lastChargedDate,
+  });
+
+  final int id;
+  final String name; // e.g. "Netflix"
+  final int amountMinor; // monthly charge
+  final int categoryId;
+  final int walletId;
+
+  /// Day-of-month anchor for charge dates (clamped in short months).
+  final DateTime startDate;
+
+  /// No-backfill anchor (Q6=B): charges only for due dates >= this date.
+  final DateTime createdAt;
+  final String? note;
+
+  /// false = cancelled: no future charges, history kept (BR-SB7).
+  final bool active;
+
+  /// Latest recorded due date — idempotency marker (BR-SB5).
+  final DateTime? lastChargedDate;
+
+  Subscription copyWith({
+    String? name,
+    int? amountMinor,
+    int? categoryId,
+    int? walletId,
+    DateTime? startDate,
+    String? note,
+    bool? active,
+    DateTime? lastChargedDate,
+  }) =>
+      Subscription(
+        id: id,
+        name: name ?? this.name,
+        amountMinor: amountMinor ?? this.amountMinor,
+        categoryId: categoryId ?? this.categoryId,
+        walletId: walletId ?? this.walletId,
+        startDate: startDate ?? this.startDate,
+        createdAt: createdAt,
+        note: note ?? this.note,
+        active: active ?? this.active,
+        lastChargedDate: lastChargedDate ?? this.lastChargedDate,
       );
 }
 

@@ -37,6 +37,22 @@ class InstallmentPlans extends Table {
       dateTime().withDefault(currentDateAndTime)();
 }
 
+class Subscriptions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 40)();
+  IntColumn get amountMinor => integer()();
+  IntColumn get categoryId =>
+      integer().references(Categories, #id)();
+  IntColumn get walletId => integer().references(Wallets, #id)();
+  DateTimeColumn get startDate => dateTime()(); // day-of-month anchor
+  TextColumn get note => text().nullable().withLength(max: 200)();
+  BoolColumn get active => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get lastChargedDate =>
+      dateTime().nullable()(); // idempotency marker (BR-SB5)
+  DateTimeColumn get createdAt =>
+      dateTime().withDefault(currentDateAndTime)();
+}
+
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get amountMinor => integer()();
@@ -52,6 +68,9 @@ class Transactions extends Table {
   IntColumn get installmentPlanId =>
       integer().nullable().references(InstallmentPlans, #id)();
   IntColumn get installmentNo => integer().nullable()(); // 1-based
+  // Set when auto-recorded from a subscription (BR-SB4); null otherwise.
+  IntColumn get subscriptionId =>
+      integer().nullable().references(Subscriptions, #id)();
 }
 
 class Budgets extends Table {
@@ -67,8 +86,14 @@ class Budgets extends Table {
       ];
 }
 
-@DriftDatabase(
-    tables: [Wallets, Categories, InstallmentPlans, Transactions, Budgets])
+@DriftDatabase(tables: [
+  Wallets,
+  Categories,
+  InstallmentPlans,
+  Subscriptions,
+  Transactions,
+  Budgets
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
@@ -76,7 +101,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -90,6 +115,11 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(installmentPlans);
             await m.addColumn(transactions, transactions.installmentPlanId);
             await m.addColumn(transactions, transactions.installmentNo);
+          }
+          if (from < 3) {
+            // v3: subscriptions (additive only).
+            await m.createTable(subscriptions);
+            await m.addColumn(transactions, transactions.subscriptionId);
           }
         },
         beforeOpen: (details) async {

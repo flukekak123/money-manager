@@ -6,6 +6,7 @@ import '../../application/providers.dart';
 import '../../domain/entities.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../categories/categories_screen.dart';
+import '../subscriptions/subscriptions_screen.dart';
 import '../wallets/wallets_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -47,6 +48,14 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+          ),
+          ListTile(
+            key: const Key('subscriptions-settings-tile'),
+            leading: const Icon(Icons.autorenew),
+            title: Text(l.subscriptions),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const SubscriptionsScreen())),
           ),
           const Divider(),
           _SectionHeader(l.preferences),

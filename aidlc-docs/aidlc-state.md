@@ -29,12 +29,21 @@
 
 ## Current Status
 - **Lifecycle Phase**: CONSTRUCTION (Cycle 4 — Installment expenses)
-- **Current Stage**: Cycle 4 COMPLETE (commit 4ac1ac4)
+- **Current Stage**: Cycle 5 COMPLETE (commit 64930ac)
 - **Next Stage**: idle — awaiting next request
 - **Cycle 1 (v1 app)**: Complete
 - **Cycle 2 (Web/PWA + Backup)**: Complete
 - **Cycle 3 (Thai i18n)**: Complete
 - **Cycle 4 (Installment expenses)**: Complete
+- **Cycle 5 (Subscriptions)**: Complete
+
+## Cycle 5 — Subscriptions (recurring monthly expense)
+- [x] Workspace Detection (Brownfield, Cycles 1-4 artifacts loaded)
+- [x] Requirements Analysis (subscription-requirements.md, FR-1..FR-5 — approved)
+- [x] Workflow Planning (cycle5-execution-plan.md — approved)
+- [x] Functional Design (cycle5-subscription-design.md — approved)
+- [x] Code Generation (analyze clean, 63/63 tests, web build OK)
+- [x] Build and Test (docs updated, 63/63 pass, web build success)
 
 ## Cycle 4 — Installment Expenses
 - [x] Workspace Detection (Brownfield, Cycles 1-3 artifacts loaded)

@@ -620,6 +620,90 @@ abstract class AppLocalizations {
   /// **'This deletes all {count} installment transactions. This cannot be undone.'**
   String deletePlanBody(Object count);
 
+  /// No description provided for @subscriptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions'**
+  String get subscriptions;
+
+  /// No description provided for @newSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'New Subscription'**
+  String get newSubscription;
+
+  /// No description provided for @editSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Subscription'**
+  String get editSubscription;
+
+  /// No description provided for @subscriptionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (e.g. Netflix)'**
+  String get subscriptionName;
+
+  /// No description provided for @perMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}/month'**
+  String perMonth(Object amount);
+
+  /// No description provided for @nextCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Next charge {date}'**
+  String nextCharge(Object date);
+
+  /// No description provided for @cancelledLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get cancelledLabel;
+
+  /// No description provided for @cancelSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel subscription'**
+  String get cancelSubscription;
+
+  /// No description provided for @cancelSubscriptionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No more charges will be recorded. Past transactions are kept.'**
+  String get cancelSubscriptionBody;
+
+  /// No description provided for @keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get keep;
+
+  /// No description provided for @startDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get startDate;
+
+  /// No description provided for @noSubscriptions.
+  ///
+  /// In en, this message translates to:
+  /// **'No subscriptions yet'**
+  String get noSubscriptions;
+
+  /// No description provided for @addSubscriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to add a monthly subscription.'**
+  String get addSubscriptionHint;
+
+  /// No description provided for @chargeHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge history'**
+  String get chargeHistory;
+
   /// No description provided for @walletTypeCash.
   ///
   /// In en, this message translates to:

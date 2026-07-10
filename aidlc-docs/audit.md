@@ -334,3 +334,111 @@
 **Context**: OPERATIONS - deploy, Cycle 4
 
 ---
+## Initial User Request (Cycle 5)
+**Timestamp**: 2026-07-10T02:10:00Z
+**User Input**: "let create subscribe that pay every month"
+**AI Response**: "Invoked aidlc skill. Workspace detection: brownfield, Cycles 1-4 complete (installments just shipped). New Cycle 5: monthly subscriptions (recurring expense). Proceeding to Requirements Analysis (standard depth). Key open question: auto-record mechanism — offline app has no background scheduler."
+**Context**: INCEPTION - Workspace Detection, Cycle 5 (subscriptions)
+
+---
+## Requirements Analysis — Clarifying Questions (Cycle 5)
+**Timestamp**: 2026-07-10T02:12:00Z
+**AI Response**: "Created subscription-requirements-questions.md with 6 questions (recording mechanism, charge day, lifetime, price changes, charge lock, backfill). Waiting for answers."
+**Context**: INCEPTION - Requirements Analysis, Cycle 5
+
+---
+## Requirements Answers Received (Cycle 5)
+**Timestamp**: 2026-07-10T02:20:00Z
+**User Input**: "done" (answers in subscription-requirements-questions.md: Q1=A materialize on app open, Q2=A charge day from start date clamped, Q3=A active until cancelled, Q4=A editable affecting future charges only, Q5=A charges locked manage via subscription, Q6=B no backfill — first charge next due from creation)
+**AI Response**: "No contradictions. Generating subscription-requirements.md."
+**Context**: INCEPTION - Requirements Analysis, Cycle 5
+
+---
+## Requirements Analysis Complete — Approval Prompt (Cycle 5)
+**Timestamp**: 2026-07-10T02:22:00Z
+**AI Response**: "Created subscription-requirements.md (FR-1..FR-5, NFR-1..NFR-5). Asked: Request Changes / Add User Stories / Approve & Continue to Workflow Planning."
+**Context**: INCEPTION - Requirements Analysis, Cycle 5 — awaiting approval
+
+---
+## Requirements Approval (Cycle 5)
+**Timestamp**: 2026-07-10T02:25:00Z
+**User Input**: "Approve & Continue"
+**AI Response**: "Requirements approved. Proceeding to Workflow Planning."
+**Context**: INCEPTION - Requirements Analysis approved, Cycle 5
+
+---
+## Workflow Planning Complete — Approval Prompt (Cycle 5)
+**Timestamp**: 2026-07-10T02:28:00Z
+**AI Response**: "Created cycle5-execution-plan.md. Execute: Functional Design, Code Generation, Build & Test. Skip: User Stories, Application Design, Units Generation, NFR stages, Infrastructure. Risk medium (idempotent on-launch materializer). Asked: Request Changes / Add Skipped Stages / Approve & Continue."
+**Context**: INCEPTION - Workflow Planning, Cycle 5 — awaiting approval
+
+---
+## Workflow Plan Approval (Cycle 5)
+**Timestamp**: 2026-07-10T02:30:00Z
+**User Input**: "Approve & Continue"
+**AI Response**: "Plan approved. Functional Design: no user questions this cycle — all user-facing decisions resolved in requirements Q&A; remaining choices are implementation-level (idempotency via lastChargedDate marker, archived category/wallet keeps charging, launch-hook placement) — documented as design decisions in plan + design doc."
+**Context**: CONSTRUCTION - Functional Design (Part 1 Planning), Cycle 5
+
+---
+## Functional Design Complete — Approval Prompt (Cycle 5)
+**Timestamp**: 2026-07-10T02:35:00Z
+**AI Response**: "Created cycle5-subscription-design.md: Subscription entity (+lastChargedDate idempotency marker), TransactionEntry.subscriptionId, dueDatesBetween algorithm (no-backfill anchor, catch-up, clamp), BR-SB1..SB9, SubscriptionRepository (materializeDueCharges with injectable today), schema v3, backup v3 (imports v1/v2), launch hook, Subscriptions screen + edit form + badges + detail sheet, test plan. No user questions (all resolved in requirements; implementation decisions documented). Asked: Request Changes or Continue."
+**Context**: CONSTRUCTION - Functional Design, Cycle 5 — awaiting approval
+
+---
+## Functional Design Approval (Cycle 5)
+**Timestamp**: 2026-07-10T02:40:00Z
+**User Input**: "Continue to Next Stage"
+**AI Response**: "Design approved. Code Generation Part 1: creating plan."
+**Context**: CONSTRUCTION - Functional Design approved, Cycle 5
+
+---
+## Code Generation Plan — Approval Prompt (Cycle 5)
+**Timestamp**: 2026-07-10T02:42:00Z
+**AI Response**: "Created cycle5-code-generation-plan.md: 6 steps, 20 sub-steps. New files: subscription_calculator, subscription_repository_impl, subscription_controller, subscriptions_screen, subscription_edit_screen, subscription_sheet, 2 test files. Modified: entities, repositories, database (+regen), transaction repo guard, backup v3, providers, tile/screens routing, settings entry, ARB EN+TH, smoke test fake. Asked for approval."
+**Context**: CONSTRUCTION - Code Generation Part 1, Cycle 5 — awaiting approval
+
+---
+## Code Generation Plan Approval (Cycle 5)
+**Timestamp**: 2026-07-10T02:45:00Z
+**User Input**: "Approve & Generate"
+**AI Response**: "Executing Part 2 Generation, steps 1-6."
+**Context**: CONSTRUCTION - Code Generation Part 2, Cycle 5
+
+---
+## Code Generation — Complete (Cycle 5)
+**Timestamp**: 2026-07-10T03:20:00Z
+**AI Response**: "Executed 20-sub-step plan. Domain: Subscription entity (+lastChargedDate marker, createdAt no-backfill anchor), TransactionEntry.subscriptionId, SubscriptionCalculator (dueDatesBetween/nextChargeDate), SubscriptionRepository. Data: schema v3 (Subscriptions table + txn column, additive migration), regen, SubscriptionRepositoryImpl (atomic idempotent materializer), shared _guardNotGenerated lock (BR-SB4), backup v3 imports v1/v2/v3. App: SubscriptionController, providers, launch hook in app.dart. UI: SubscriptionsScreen + edit form + detail sheet (cancel confirm), autorenew badge, tap/dismiss routing, Settings Manage entry, 15 l10n keys EN+TH. Tests: +16 (calculator 8, repo 7, backup v2-compat) = 63/63 pass; smoke fake added upfront. analyze clean; web build OK. One fix during verification: TransactionTile constructor missing subscription param (3 analyze errors, fixed). Wrote cycle5-code-summary.md."
+**Approval Prompt**: "Cycle 5 code generation complete — Request Changes or Continue to Build and Test?"
+**Context**: CONSTRUCTION - Code Generation, unit money-manager, Cycle 5 — awaiting approval
+
+---
+## Code Generation Approval (Cycle 5)
+**Timestamp**: 2026-07-10T03:40:00Z
+**User Input**: "Continue to Next Stage"
+**AI Response**: "Approved. Proceeding to Build and Test."
+**Context**: CONSTRUCTION - Code Generation approved, Cycle 5
+
+---
+## Build and Test Stage (Cycle 5)
+**Timestamp**: 2026-07-10T03:45:00Z
+**Build Status**: Success (analyze clean; web build OK from codegen step)
+**Test Status**: Pass (63/63)
+**Files Updated**: build-and-test-summary.md (Cycle 5 results), integration-test-instructions.md (+subscription scenarios + manual walkthrough). build/unit-test instructions unchanged (still accurate).
+**Approval Prompt**: "Build and test instructions complete. Ready to proceed to Operations stage?"
+**Context**: CONSTRUCTION - Build and Test, Cycle 5 — awaiting approval
+
+---
+## Build and Test Approval (Cycle 5)
+**Timestamp**: 2026-07-10T03:50:00Z
+**User Input**: "Approve & Continue"
+**AI Response**: "Approved. Operations placeholder — committing Cycle 5."
+**Context**: CONSTRUCTION complete, Cycle 5
+
+---
+## Cycle 5 Closed
+**Timestamp**: 2026-07-10T03:55:00Z
+**AI Response**: "Committed 64930ac. Cycle 5 (subscriptions) complete. Not pushed/deployed."
+**Context**: Cycle 5 complete
+
+---

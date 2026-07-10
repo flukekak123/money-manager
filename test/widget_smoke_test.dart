@@ -74,6 +74,27 @@ class _FakeInstallmentRepo implements InstallmentRepository {
   Future<void> deletePlan(int id) async {}
 }
 
+class _FakeSubscriptionRepo implements SubscriptionRepository {
+  @override
+  Stream<List<Subscription>> watchAll() =>
+      Stream.value(const <Subscription>[]);
+  @override
+  Future<Subscription?> getById(int id) async => null;
+  @override
+  Stream<List<TransactionEntry>> watchCharges(int subscriptionId) =>
+      Stream.value(const <TransactionEntry>[]);
+  @override
+  Future<int> create(Subscription sub) async => 0;
+  @override
+  Future<void> update(Subscription sub) async {}
+  @override
+  Future<void> cancel(int id) async {}
+  @override
+  Future<void> delete(int id) async {}
+  @override
+  Future<int> materializeDueCharges({DateTime? today}) async => 0;
+}
+
 class _FakeBudgetRepo implements BudgetRepository {
   @override
   Stream<List<Budget>> watchByMonth(String yyyymm) =>
@@ -129,6 +150,7 @@ _overrides({
         .overrideWithValue(_FakeWalletRepo(wallets ?? [_wallet(1, 'Cash')])),
     budgetRepositoryProvider.overrideWithValue(_FakeBudgetRepo()),
     installmentRepositoryProvider.overrideWithValue(_FakeInstallmentRepo()),
+    subscriptionRepositoryProvider.overrideWithValue(_FakeSubscriptionRepo()),
     settingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
   ];
 }

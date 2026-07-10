@@ -5,6 +5,7 @@ import '../../application/providers.dart';
 import '../../core/date_utils.dart';
 import '../../domain/entities.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../subscriptions/subscription_sheet.dart';
 import '../transactions/installment_plan_sheet.dart';
 import '../transactions/transaction_edit_screen.dart';
 import '../transactions/transaction_tile.dart';
@@ -61,15 +62,25 @@ class HomeScreen extends ConsumerWidget {
                             ? null
                             : ref.watch(installmentPlansByIdProvider)[
                                 t.installmentPlanId],
-                        onTap: () => t.isInstallment
-                            ? showInstallmentPlanSheet(
-                                context, t.installmentPlanId!)
-                            : Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      TransactionEditScreen(existing: t),
-                                ),
+                        subscription: t.subscriptionId == null
+                            ? null
+                            : ref.watch(
+                                subscriptionsByIdProvider)[t.subscriptionId],
+                        onTap: () {
+                          if (t.isInstallment) {
+                            showInstallmentPlanSheet(
+                                context, t.installmentPlanId!);
+                          } else if (t.isSubscriptionCharge) {
+                            showSubscriptionSheet(context, t.subscriptionId!);
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    TransactionEditScreen(existing: t),
                               ),
+                            );
+                          }
+                        },
                       ))
                   .toList(),
             );

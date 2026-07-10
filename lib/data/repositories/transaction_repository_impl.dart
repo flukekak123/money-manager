@@ -19,16 +19,22 @@ class TransactionRepositoryImpl implements TransactionRepository {
         note: r.note,
         installmentPlanId: r.installmentPlanId,
         installmentNo: r.installmentNo,
+        subscriptionId: r.subscriptionId,
       );
 
-  /// BR-I4: installment-generated rows are managed through their plan only.
-  Future<void> _guardNotInstallment(int id) async {
+  /// BR-I4 / BR-SB4: generated rows (installments, subscription charges) are
+  /// managed through their plan/subscription only.
+  Future<void> _guardNotGenerated(int id) async {
     final row = await (_db.select(_db.transactions)
           ..where((t) => t.id.equals(id)))
         .getSingleOrNull();
     if (row?.installmentPlanId != null) {
       throw const d.DomainException(
           'This transaction belongs to an installment plan. Manage the plan instead.');
+    }
+    if (row?.subscriptionId != null) {
+      throw const d.DomainException(
+          'This transaction is a subscription charge. Manage the subscription instead.');
     }
   }
 
@@ -72,7 +78,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<void> update(d.TransactionEntry e) async {
-    await _guardNotInstallment(e.id);
+    await _guardNotGenerated(e.id);
     await (_db.update(_db.transactions)..where((t) => t.id.equals(e.id))).write(
       TransactionsCompanion(
         amountMinor: Value(e.amountMinor),
@@ -87,7 +93,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<void> delete(int id) async {
-    await _guardNotInstallment(id);
+    await _guardNotGenerated(id);
     await (_db.delete(_db.transactions)..where((t) => t.id.equals(id))).go();
   }
 }

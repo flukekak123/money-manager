@@ -6,6 +6,7 @@ import '../data/database.dart' show AppDatabase;
 import '../data/repositories/budget_repository_impl.dart';
 import '../data/repositories/category_repository_impl.dart';
 import '../data/repositories/installment_repository_impl.dart';
+import '../data/repositories/subscription_repository_impl.dart';
 import '../data/repositories/transaction_repository_impl.dart';
 import '../data/repositories/wallet_repository_impl.dart';
 import '../data/backup_service.dart';
@@ -18,6 +19,7 @@ import 'app_lock_service.dart';
 import 'controllers/backup_controller.dart';
 import 'controllers/budget_controller.dart';
 import 'controllers/category_controller.dart';
+import 'controllers/subscription_controller.dart';
 import 'controllers/transaction_controller.dart';
 import 'controllers/wallet_controller.dart';
 import 'settings_notifier.dart';
@@ -47,6 +49,9 @@ final budgetRepositoryProvider = Provider<BudgetRepository>(
 
 final installmentRepositoryProvider = Provider<InstallmentRepository>(
     (ref) => InstallmentRepositoryImpl(ref.watch(databaseProvider)));
+
+final subscriptionRepositoryProvider = Provider<SubscriptionRepository>(
+    (ref) => SubscriptionRepositoryImpl(ref.watch(databaseProvider)));
 
 // --- Settings ---------------------------------------------------------------
 
@@ -112,6 +117,26 @@ final installmentPlansByIdProvider = Provider<Map<int, InstallmentPlan>>((ref) {
       const <InstallmentPlan>[];
   return {for (final p in plans) p.id: p};
 });
+
+final subscriptionsProvider = StreamProvider<List<Subscription>>(
+    (ref) => ref.watch(subscriptionRepositoryProvider).watchAll());
+
+/// Recorded charges of one subscription, newest first.
+final subscriptionChargesProvider =
+    StreamProvider.family<List<TransactionEntry>, int>((ref, id) =>
+        ref.watch(subscriptionRepositoryProvider).watchCharges(id));
+
+/// Lookup map subscriptionId -> Subscription (for charge badges).
+final subscriptionsByIdProvider = Provider<Map<int, Subscription>>((ref) {
+  final subs =
+      ref.watch(subscriptionsProvider).asData?.value ?? const <Subscription>[];
+  return {for (final s in subs) s.id: s};
+});
+
+/// Runs once per app launch: records all due-but-unrecorded subscription
+/// charges (FR-2). UI streams pick up the new rows reactively.
+final subscriptionMaterializeOnLaunchProvider = FutureProvider<int>(
+    (ref) => ref.watch(subscriptionRepositoryProvider).materializeDueCharges());
 
 final walletBalanceProvider = StreamProvider.family<int, int>(
     (ref, walletId) =>
@@ -181,6 +206,13 @@ final walletControllerProvider = Provider<WalletController>(
 
 final categoryControllerProvider = Provider<CategoryController>(
     (ref) => CategoryController(ref.watch(categoryRepositoryProvider)));
+
+final subscriptionControllerProvider = Provider<SubscriptionController>(
+  (ref) => SubscriptionController(
+    repository: ref.watch(subscriptionRepositoryProvider),
+    money: ref.watch(moneyFormatterProvider),
+  ),
+);
 
 // --- Backup ------------------------------------------------------------------
 

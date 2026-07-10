@@ -131,6 +131,16 @@ English + Thai via Flutter `gen-l10n`. Strings live in `lib/l10n/app_en.arb`
   column; map back with `Enum.values[i]`. Order of enum values is a schema
   contract — don't reorder.
 - Budget thresholds are fixed: warn ≥80%, over ≥100% (`BudgetProgress.status`).
+- **Subscriptions** (schema v3): recurring monthly expenses (`Subscriptions`
+  table + `subscriptionId` on `Transactions`). No background scheduler —
+  charges are **materialized on app launch** (`subscriptionMaterializeOnLaunchProvider`
+  watched in `app.dart`) and after create/edit: `dueDatesBetween`
+  (`domain/services/subscription_calculator.dart`) yields due dates from the
+  `lastChargedDate` marker (or `createdAt` — no backfill) through today; the
+  repo inserts charges and advances the marker in one DB transaction, so a
+  double run is a no-op. Charges are locked like installments (BR-SB4); edits
+  affect future charges only; cancel keeps history; hard delete only with zero
+  charges. Backup JSON `version: 3` (imports v1/v2).
 - **Installments** (schema v2): an expense can be split over 3/6/10/12 months —
   one `InstallmentPlans` row + N future-dated expense transactions generated
   upfront (`installmentPlanId`/`installmentNo` on `Transactions`). Split math

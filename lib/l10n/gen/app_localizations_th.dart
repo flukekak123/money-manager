@@ -289,6 +289,53 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
+  String get subscriptions => 'บริการรายเดือน';
+
+  @override
+  String get newSubscription => 'เพิ่มบริการรายเดือน';
+
+  @override
+  String get editSubscription => 'แก้ไขบริการรายเดือน';
+
+  @override
+  String get subscriptionName => 'ชื่อ (เช่น Netflix)';
+
+  @override
+  String perMonth(Object amount) {
+    return '$amount/เดือน';
+  }
+
+  @override
+  String nextCharge(Object date) {
+    return 'เรียกเก็บครั้งถัดไป $date';
+  }
+
+  @override
+  String get cancelledLabel => 'ยกเลิกแล้ว';
+
+  @override
+  String get cancelSubscription => 'ยกเลิกบริการ';
+
+  @override
+  String get cancelSubscriptionBody =>
+      'จะไม่บันทึกค่าใช้จ่ายอีกต่อไป รายการที่ผ่านมายังคงอยู่';
+
+  @override
+  String get keep => 'เก็บไว้';
+
+  @override
+  String get startDate => 'วันที่เริ่ม';
+
+  @override
+  String get noSubscriptions => 'ยังไม่มีบริการรายเดือน';
+
+  @override
+  String get addSubscriptionHint => 'แตะ + เพื่อเพิ่มบริการรายเดือน';
+
+  @override
+  String get chargeHistory => 'ประวัติการเรียกเก็บ';
+
+  @override
   String get walletTypeCash => 'เงินสด';
 
   @override

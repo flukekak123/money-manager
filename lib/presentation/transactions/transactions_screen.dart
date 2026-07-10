@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../application/providers.dart';
 import '../../domain/entities.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../subscriptions/subscription_sheet.dart';
 import '../widgets/empty_state.dart';
 import 'installment_plan_sheet.dart';
 import 'transaction_edit_screen.dart';
@@ -18,6 +19,7 @@ class TransactionsScreen extends ConsumerWidget {
     final txnsAsync = ref.watch(allTransactionsProvider);
     final catsById = ref.watch(categoriesByIdProvider);
     final plansById = ref.watch(installmentPlansByIdProvider);
+    final subsById = ref.watch(subscriptionsByIdProvider);
     final l = AppLocalizations.of(context);
 
     return txnsAsync.when(
@@ -54,9 +56,10 @@ class TransactionsScreen extends ConsumerWidget {
                 ),
                 ...items.map((t) => Dismissible(
                       key: Key('dismiss-${t.id}'),
-                      // Installments are managed via their plan (BR-I4):
-                      // no swipe-delete, tap opens the plan sheet.
-                      direction: t.isInstallment
+                      // Generated rows (installments BR-I4, subscription
+                      // charges BR-SB4) are managed via plan/subscription:
+                      // no swipe-delete, tap opens the sheet.
+                      direction: t.isInstallment || t.isSubscriptionCharge
                           ? DismissDirection.none
                           : DismissDirection.endToStart,
                       background: Container(
@@ -75,15 +78,24 @@ class TransactionsScreen extends ConsumerWidget {
                         plan: t.installmentPlanId == null
                             ? null
                             : plansById[t.installmentPlanId],
-                        onTap: () => t.isInstallment
-                            ? showInstallmentPlanSheet(
-                                context, t.installmentPlanId!)
-                            : Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      TransactionEditScreen(existing: t),
-                                ),
+                        subscription: t.subscriptionId == null
+                            ? null
+                            : subsById[t.subscriptionId],
+                        onTap: () {
+                          if (t.isInstallment) {
+                            showInstallmentPlanSheet(
+                                context, t.installmentPlanId!);
+                          } else if (t.isSubscriptionCharge) {
+                            showSubscriptionSheet(context, t.subscriptionId!);
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    TransactionEditScreen(existing: t),
                               ),
+                            );
+                          }
+                        },
                       ),
                     )),
               ],

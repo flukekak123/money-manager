@@ -15,15 +15,16 @@ class BackupService {
 
   final AppDatabase _db;
 
-  /// Current backup schema version. v2 adds installmentPlans and the
-  /// installmentPlanId/installmentNo transaction fields.
-  static const int schemaVersion = 2;
+  /// Current backup schema version. v2 added installmentPlans; v3 adds
+  /// subscriptions and the subscriptionId transaction field.
+  static const int schemaVersion = 3;
 
   /// Reads all tables and returns a pretty-printed JSON string.
   Future<String> exportJson() async {
     final wallets = await _db.select(_db.wallets).get();
     final categories = await _db.select(_db.categories).get();
     final installmentPlans = await _db.select(_db.installmentPlans).get();
+    final subscriptions = await _db.select(_db.subscriptions).get();
     final transactions = await _db.select(_db.transactions).get();
     final budgets = await _db.select(_db.budgets).get();
 
@@ -66,6 +67,21 @@ class BackupService {
             'createdAt': p.createdAt.toIso8601String(),
           },
       ],
+      'subscriptions': [
+        for (final s in subscriptions)
+          {
+            'id': s.id,
+            'name': s.name,
+            'amountMinor': s.amountMinor,
+            'categoryId': s.categoryId,
+            'walletId': s.walletId,
+            'startDate': s.startDate.toIso8601String(),
+            'note': s.note,
+            'active': s.active,
+            'lastChargedDate': s.lastChargedDate?.toIso8601String(),
+            'createdAt': s.createdAt.toIso8601String(),
+          },
+      ],
       'transactions': [
         for (final t in transactions)
           {
@@ -79,6 +95,7 @@ class BackupService {
             'createdAt': t.createdAt.toIso8601String(),
             'installmentPlanId': t.installmentPlanId,
             'installmentNo': t.installmentNo,
+            'subscriptionId': t.subscriptionId,
           },
       ],
       'budgets': [
@@ -111,15 +128,18 @@ class BackupService {
       throw const DomainException('Invalid or corrupt backup file');
     }
     final version = decoded['version'];
-    // v1 backups (pre-installments) remain importable.
-    if (version != 1 && version != schemaVersion) {
+    // Older backups (v1 pre-installments, v2 pre-subscriptions) importable.
+    if (version != 1 && version != 2 && version != schemaVersion) {
       throw const DomainException('Unsupported backup version');
     }
+    final v = version as int;
 
     final wallets = _asList(decoded['wallets']);
     final categories = _asList(decoded['categories']);
     final installmentPlans =
-        version == 1 ? const <dynamic>[] : _asList(decoded['installmentPlans']);
+        v < 2 ? const <dynamic>[] : _asList(decoded['installmentPlans']);
+    final subscriptions =
+        v < 3 ? const <dynamic>[] : _asList(decoded['subscriptions']);
     final transactions = _asList(decoded['transactions']);
     final budgets = _asList(decoded['budgets']);
 
@@ -129,6 +149,7 @@ class BackupService {
         await _db.delete(_db.budgets).go();
         await _db.delete(_db.transactions).go();
         await _db.delete(_db.installmentPlans).go();
+        await _db.delete(_db.subscriptions).go();
         await _db.delete(_db.categories).go();
         await _db.delete(_db.wallets).go();
 
@@ -169,6 +190,21 @@ class BackupService {
                 createdAt: Value(_dateTime(m, 'createdAt')),
               ));
         }
+        for (final sub in subscriptions) {
+          final m = _asMap(sub);
+          await _db.into(_db.subscriptions).insert(SubscriptionsCompanion(
+                id: Value(_int(m, 'id')),
+                name: Value(_str(m, 'name')),
+                amountMinor: Value(_int(m, 'amountMinor')),
+                categoryId: Value(_int(m, 'categoryId')),
+                walletId: Value(_int(m, 'walletId')),
+                startDate: Value(_dateTime(m, 'startDate')),
+                note: Value(m['note'] as String?),
+                active: Value(_bool(m, 'active')),
+                lastChargedDate: Value(_dateTimeOrNull(m, 'lastChargedDate')),
+                createdAt: Value(_dateTime(m, 'createdAt')),
+              ));
+        }
         for (final t in transactions) {
           final m = _asMap(t);
           await _db.into(_db.transactions).insert(TransactionsCompanion(
@@ -182,6 +218,7 @@ class BackupService {
                 createdAt: Value(_dateTime(m, 'createdAt')),
                 installmentPlanId: Value(_intOrNull(m, 'installmentPlanId')),
                 installmentNo: Value(_intOrNull(m, 'installmentNo')),
+                subscriptionId: Value(_intOrNull(m, 'subscriptionId')),
               ));
         }
         for (final b in budgets) {
@@ -247,5 +284,10 @@ class BackupService {
       if (parsed != null) return parsed;
     }
     throw const DomainException('Invalid or corrupt backup file');
+  }
+
+  static DateTime? _dateTimeOrNull(Map<String, dynamic> m, String key) {
+    if (m[key] == null) return null;
+    return _dateTime(m, key);
   }
 }

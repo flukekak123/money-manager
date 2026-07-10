@@ -40,6 +40,32 @@ abstract class InstallmentRepository {
   Future<void> deletePlan(int id);
 }
 
+abstract class SubscriptionRepository {
+  /// Active first, then cancelled; newest first within each group.
+  Stream<List<Subscription>> watchAll();
+  Future<Subscription?> getById(int id);
+
+  /// Recorded charges of one subscription, newest first.
+  Stream<List<TransactionEntry>> watchCharges(int subscriptionId);
+
+  /// Creates the subscription, then materializes any charge due today.
+  Future<int> create(Subscription sub);
+
+  /// BR-SB6: changes apply to future charges only. Re-materializes after.
+  Future<void> update(Subscription sub);
+
+  /// BR-SB7: stops future charges, keeps recorded transactions.
+  Future<void> cancel(int id);
+
+  /// BR-SB8: allowed only when the subscription has no recorded charges.
+  Future<void> delete(int id);
+
+  /// Records every due-but-unrecorded charge for all active subscriptions
+  /// (BR-SB5: atomic + idempotent per subscription). Returns rows created.
+  /// [today] injectable for tests.
+  Future<int> materializeDueCharges({DateTime? today});
+}
+
 abstract class BudgetRepository {
   Stream<List<Budget>> watchByMonth(String yyyymm);
   Future<void> upsert(Budget budget);

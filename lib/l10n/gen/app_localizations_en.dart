@@ -289,6 +289,53 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get subscriptions => 'Subscriptions';
+
+  @override
+  String get newSubscription => 'New Subscription';
+
+  @override
+  String get editSubscription => 'Edit Subscription';
+
+  @override
+  String get subscriptionName => 'Name (e.g. Netflix)';
+
+  @override
+  String perMonth(Object amount) {
+    return '$amount/month';
+  }
+
+  @override
+  String nextCharge(Object date) {
+    return 'Next charge $date';
+  }
+
+  @override
+  String get cancelledLabel => 'Cancelled';
+
+  @override
+  String get cancelSubscription => 'Cancel subscription';
+
+  @override
+  String get cancelSubscriptionBody =>
+      'No more charges will be recorded. Past transactions are kept.';
+
+  @override
+  String get keep => 'Keep';
+
+  @override
+  String get startDate => 'Start date';
+
+  @override
+  String get noSubscriptions => 'No subscriptions yet';
+
+  @override
+  String get addSubscriptionHint => 'Tap + to add a monthly subscription.';
+
+  @override
+  String get chargeHistory => 'Charge history';
+
+  @override
   String get walletTypeCash => 'Cash';
 
   @override

@@ -14,6 +14,9 @@ class MoneyManagerApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Kick off subscription charge materialization once per launch (FR-2).
+    // FutureProvider caches; errors stay contained in its AsyncValue.
+    ref.watch(subscriptionMaterializeOnLaunchProvider);
     final settings = ref.watch(settingsProvider).asData?.value;
     final themeMode = settings?.themeMode ?? AppThemeMode.system;
     final languageCode = settings?.languageCode ?? 'en';

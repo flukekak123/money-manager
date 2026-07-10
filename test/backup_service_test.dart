@@ -2,9 +2,10 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:money_manager/data/backup_service.dart';
 import 'package:money_manager/data/database.dart'
-    hide Budget, InstallmentPlan;
+    hide Budget, InstallmentPlan, Subscription;
 import 'package:money_manager/data/repositories/budget_repository_impl.dart';
 import 'package:money_manager/data/repositories/installment_repository_impl.dart';
+import 'package:money_manager/data/repositories/subscription_repository_impl.dart';
 import 'package:money_manager/data/repositories/transaction_repository_impl.dart';
 import 'package:money_manager/domain/entities.dart';
 
@@ -47,6 +48,16 @@ void main() {
         startDate: DateTime(2026, 6, 15),
       ),
     );
+    // v3: a subscription with its first charge (start = today).
+    final subId = await SubscriptionRepositoryImpl(source).create(Subscription(
+      id: 0,
+      name: 'Netflix',
+      amountMinor: 41900,
+      categoryId: 1,
+      walletId: 1,
+      startDate: DateTime.now(),
+      createdAt: DateTime.now(),
+    ));
 
     final json = await BackupService(source).exportJson();
 
@@ -64,11 +75,20 @@ void main() {
     expect(tgtCats.length, 9);
 
     final tgtTxns = await target.select(target.transactions).get();
-    expect(tgtTxns.length, 4); // 1 manual + 3 installments
-    final manual = tgtTxns.where((t) => t.installmentPlanId == null).toList();
+    expect(tgtTxns.length, 5); // 1 manual + 3 installments + 1 sub charge
+    final manual = tgtTxns
+        .where((t) => t.installmentPlanId == null && t.subscriptionId == null)
+        .toList();
     expect(manual.length, 1);
     expect(manual.first.amountMinor, 1250);
     expect(manual.first.note, 'lunch');
+
+    final tgtSubs = await target.select(target.subscriptions).get();
+    expect(tgtSubs.length, 1);
+    expect(tgtSubs.first.id, subId);
+    expect(tgtSubs.first.name, 'Netflix');
+    expect(tgtSubs.first.lastChargedDate, isNotNull);
+    expect(tgtTxns.where((t) => t.subscriptionId == subId).length, 1);
 
     final tgtPlans = await target.select(target.installmentPlans).get();
     expect(tgtPlans.length, 1);
@@ -101,7 +121,28 @@ void main() {
     final txns = await source.select(source.transactions).get();
     expect(txns.length, 1);
     expect(txns.first.installmentPlanId, isNull);
+    expect(txns.first.subscriptionId, isNull);
     expect(await source.select(source.installmentPlans).get(), isEmpty);
+    expect(await source.select(source.subscriptions).get(), isEmpty);
+  });
+
+  test('v2 backup (no subscriptions) still imports', () async {
+    await BackupService(source).importReplace(
+        '{"version": 2, "wallets": [{"id": 1, "name": "Cash", "type": 0, '
+        '"iconCodePoint": 1, "colorValue": 1, "archived": false}], '
+        '"categories": [{"id": 1, "name": "Food", "kind": 1, '
+        '"iconCodePoint": 1, "colorValue": 1, "isDefault": true, '
+        '"archived": false}], '
+        '"installmentPlans": [], '
+        '"transactions": [{"id": 1, "amountMinor": 900, "kind": 1, '
+        '"categoryId": 1, "walletId": 1, "date": "2026-07-01T00:00:00.000", '
+        '"note": null, "createdAt": "2026-07-01T00:00:00.000", '
+        '"installmentPlanId": null, "installmentNo": null}], '
+        '"budgets": []}');
+
+    final txns = await source.select(source.transactions).get();
+    expect(txns.length, 1);
+    expect(await source.select(source.subscriptions).get(), isEmpty);
   });
 
   test('import rejects unsupported version', () async {
