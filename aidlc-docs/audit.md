@@ -442,3 +442,10 @@
 **Context**: Cycle 5 complete
 
 ---
+## Push + Deploy (Cycle 5)
+**Timestamp**: 2026-07-10T04:00:00Z
+**User Input**: "push"
+**AI Response**: "Pushed main (08f12da + docs commit). Rebuilt web with --base-href /money-manager/, deployed gh-pages."
+**Context**: OPERATIONS - deploy, Cycle 5
+
+---
