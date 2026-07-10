@@ -327,3 +327,10 @@
 **Context**: Cycle 4 complete
 
 ---
+## Push + Deploy (Cycle 4)
+**Timestamp**: 2026-07-10T02:00:00Z
+**User Input**: "go push"
+**AI Response**: "Pushed main 0b5a657. Rebuilt web with --no-tree-shake-icons --base-href /money-manager/, deployed gh-pages 5a51bc5 (main.dart.js + flutter_service_worker.js + flutter_bootstrap.js updated — PWA clients get new version)."
+**Context**: OPERATIONS - deploy, Cycle 4
+
+---
