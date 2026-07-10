@@ -449,3 +449,16 @@
 **Context**: OPERATIONS - deploy, Cycle 5
 
 ---
+## Change Request (Cycle 5 amendment)
+**Timestamp**: 2026-07-10T04:30:00Z
+**User Input**: "when i add the subscriptions it not in expense in this month ?" then "A" (charge current period on create) + "load skill.md from global to this project select the skill that useful use your remommend"
+**AI Response**: "Amending Q6 decision: B -> B' (one-charge current-period backfill on create). dueDatesBetween first run now returns latest due date <= today (single charge), marker path unchanged. Updating requirements/design/tests, then copying recommended global skills into project."
+**Context**: Cycle 5 post-release change request
+
+---
+## Change Request Complete (Cycle 5 amendment)
+**Timestamp**: 2026-07-10T04:50:00Z
+**AI Response**: "dueDatesBetween first-run path now returns latest due date <= today (one current-period charge). Existing user subscriptions self-heal: marker is null, so next app open records the current period. Updated requirements (Q6=B'), design doc, CLAUDE.md, tests (+3, adjusted 2). 66/66 pass, analyze clean. Copied recommended global skills into project .claude/skills: tdd, diagnosing-bugs, codebase-design, domain-modeling (skipped aidlc — already global-mandated; others overlap AI-DLC workflow)."
+**Context**: Cycle 5 amendment + project skills setup
+
+---

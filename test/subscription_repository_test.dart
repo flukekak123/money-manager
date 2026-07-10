@@ -1,3 +1,5 @@
+import 'dart:math' show min;
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:money_manager/data/database.dart' hide Subscription;
@@ -105,6 +107,25 @@ void main() {
       )),
       throwsA(isA<DomainException>()),
     );
+  });
+
+  test('past start date: current period charged on create (Q6=B\')',
+      () async {
+    final now = DateTime.now();
+    // Charge day = same day 3 months ago -> current period due = this month.
+    final id = await repo.create(Subscription(
+      id: 0,
+      name: 'Gym',
+      amountMinor: 99900,
+      categoryId: 1,
+      walletId: 1,
+      startDate: DateTime(now.year, now.month - 3, min(now.day, 28)),
+      createdAt: now,
+    ));
+    final charges = await repo.watchCharges(id).first;
+    expect(charges.length, 1); // current period only, no deeper backfill
+    expect(charges.first.date.month, now.month);
+    expect(charges.first.date.year, now.year);
   });
 
   test('delete only when no charges (BR-SB8)', () async {

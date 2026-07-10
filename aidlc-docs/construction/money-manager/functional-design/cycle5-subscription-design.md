@@ -29,11 +29,14 @@ Pure, stateless, injectable `today` for tests. Reuses
 dueDatesBetween(sub, today):
   // charge dates: startDate + i months (day clamped), i = 0,1,2,...
   // eligible window: due >= floorDate(max coverage anchor) and due <= today
-  lowerBound = sub.lastChargedDate != null
-      ? dayAfter(sub.lastChargedDate)          // continue from marker
-      : date(sub.createdAt)                    // Q6=B: no backfill
-  collect due_i = addMonthsClamped(sub.startDate, i)
-      while due_i <= today, keep those >= lowerBound
+  if sub.lastChargedDate == null:
+      // Q6=B' (amended): current billing period only — latest due <= today.
+      // One charge, so a new subscription hits this month's expenses.
+      return [max due_i <= today] (or [] if startDate is future)
+  else:
+      lowerBound = dayAfter(sub.lastChargedDate)   // catch-up from marker
+      collect due_i = addMonthsClamped(sub.startDate, i)
+          while due_i <= today, keep those >= lowerBound
 ```
 
 Materializer (repository, per subscription, one DB transaction — BR-SB5):

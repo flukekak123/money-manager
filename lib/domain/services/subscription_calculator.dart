@@ -11,16 +11,25 @@ class SubscriptionCalculator {
   ///
   /// Window:
   /// - upper bound: [today] (inclusive) — never future-dated charges;
-  /// - lower bound: day after [Subscription.lastChargedDate] when set
-  ///   (continue from marker), else [Subscription.createdAt]'s date —
-  ///   a past startDate only anchors the day-of-month, no backfill (Q6=B).
+  /// - never charged yet (Q6=B'): the CURRENT billing period only — the
+  ///   latest due date on/before today. One charge, no deeper backfill, so
+  ///   a new subscription shows up in this month's expenses immediately;
+  /// - already charged: everything after the [Subscription.lastChargedDate]
+  ///   marker (catch-up for missed months).
   List<DateTime> dueDatesBetween(Subscription sub, DateTime today) {
     final day = DateTime(today.year, today.month, today.day);
-    final lower = sub.lastChargedDate != null
-        ? sub.lastChargedDate!.add(const Duration(days: 1))
-        : DateTime(
-            sub.createdAt.year, sub.createdAt.month, sub.createdAt.day);
 
+    if (sub.lastChargedDate == null) {
+      DateTime? latest;
+      for (var i = 0;; i++) {
+        final d = InstallmentCalculator.addMonthsClamped(sub.startDate, i);
+        if (d.isAfter(day)) break;
+        latest = d;
+      }
+      return latest == null ? const [] : [latest];
+    }
+
+    final lower = sub.lastChargedDate!.add(const Duration(days: 1));
     final due = <DateTime>[];
     for (var i = 0;; i++) {
       final d = InstallmentCalculator.addMonthsClamped(sub.startDate, i);

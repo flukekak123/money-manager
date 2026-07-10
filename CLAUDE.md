@@ -136,7 +136,8 @@ English + Thai via Flutter `gen-l10n`. Strings live in `lib/l10n/app_en.arb`
   charges are **materialized on app launch** (`subscriptionMaterializeOnLaunchProvider`
   watched in `app.dart`) and after create/edit: `dueDatesBetween`
   (`domain/services/subscription_calculator.dart`) yields due dates from the
-  `lastChargedDate` marker (or `createdAt` — no backfill) through today; the
+  `lastChargedDate` marker through today (first run: the current billing
+  period only — one charge, no deeper backfill); the
   repo inserts charges and advances the marker in one DB transaction, so a
   double run is a no-op. Charges are locked like installments (BR-SB4); edits
   affect future charges only; cancel keeps history; hard delete only with zero

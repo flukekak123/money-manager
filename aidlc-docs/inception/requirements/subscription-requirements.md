@@ -49,4 +49,4 @@
 | 3 | Lifetime | Active until cancelled; history kept |
 | 4 | Price change | Editable; future charges only |
 | 5 | Charge transactions | Locked; manage via subscription |
-| 6 | Backfill | No — charges from creation forward |
+| 6 | Backfill | B' (amended): one current-period charge on create; no deeper backfill |
