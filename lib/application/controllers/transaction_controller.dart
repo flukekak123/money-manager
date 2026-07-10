@@ -1,17 +1,21 @@
 import '../../core/money.dart';
 import '../../domain/entities.dart';
 import '../../domain/repositories.dart';
+import '../../domain/services/installment_calculator.dart';
 
 /// Validates and persists transactions. Throws [DomainException] on rule
 /// violations so the UI can show inline errors.
 class TransactionController {
   TransactionController({
     required TransactionRepository repository,
+    required InstallmentRepository installments,
     required MoneyFormatter money,
   })  : _repo = repository,
+        _installments = installments,
         _money = money;
 
   final TransactionRepository _repo;
+  final InstallmentRepository _installments;
   final MoneyFormatter _money;
 
   /// Parses [amountText] and validates against business rules, returning the
@@ -92,4 +96,41 @@ class TransactionController {
   }
 
   Future<void> delete(int id) => _repo.delete(id);
+
+  /// Creates an installment purchase: validates, then persists a plan plus its
+  /// N monthly expense transactions atomically (FR-1, BR-I1..I5).
+  /// [amountText] is the TOTAL purchase amount.
+  Future<void> saveInstallment({
+    required String amountText,
+    required int months,
+    required Category category,
+    required Wallet wallet,
+    required DateTime date,
+    String? note,
+  }) async {
+    final totalMinor = parseAmount(amountText);
+    _validate(
+      amountMinor: totalMinor,
+      kind: TransactionKind.expense,
+      category: category,
+      wallet: wallet,
+      date: date, // BR-I7: purchase date itself must not be in the future
+      note: note,
+    );
+    // Throws for invalid months/amount too small (BR-I1/I2).
+    const InstallmentCalculator().splitAmounts(totalMinor, months);
+
+    await _installments.createPlan(InstallmentPlan(
+      id: 0,
+      totalMinor: totalMinor,
+      months: months,
+      categoryId: category.id,
+      walletId: wallet.id,
+      startDate: date,
+      note: (note != null && note.trim().isEmpty) ? null : note?.trim(),
+    ));
+  }
+
+  Future<void> deleteInstallmentPlan(int planId) =>
+      _installments.deletePlan(planId);
 }

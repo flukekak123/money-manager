@@ -249,6 +249,46 @@ class AppLocalizationsTh extends AppLocalizations {
   String get themeDark => 'มืด';
 
   @override
+  String get payInInstallments => 'ผ่อนชำระ';
+
+  @override
+  String get installmentMonthsLabel => 'จำนวนเดือน';
+
+  @override
+  String installmentPreview(Object months, Object amount, Object lastAmount) {
+    return 'ผ่อน $months งวด งวดละ $amount (งวดสุดท้าย $lastAmount)';
+  }
+
+  @override
+  String get installmentPlanTitle => 'แผนผ่อนชำระ';
+
+  @override
+  String installmentProgress(Object paid, Object total) {
+    return 'ชำระแล้ว $paid จาก $total งวด';
+  }
+
+  @override
+  String installmentNoLabel(Object no) {
+    return 'งวดที่ $no';
+  }
+
+  @override
+  String installmentCreated(Object months) {
+    return 'สร้างแผนผ่อนชำระแล้ว ($months งวด)';
+  }
+
+  @override
+  String get total => 'ยอดรวม';
+
+  @override
+  String get deletePlan => 'ลบแผนผ่อน';
+
+  @override
+  String deletePlanBody(Object count) {
+    return 'จะลบรายการผ่อนทั้งหมด $count รายการ และไม่สามารถย้อนกลับได้';
+  }
+
+  @override
   String get walletTypeCash => 'เงินสด';
 
   @override

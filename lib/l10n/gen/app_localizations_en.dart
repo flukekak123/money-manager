@@ -249,6 +249,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeDark => 'Dark';
 
   @override
+  String get payInInstallments => 'Pay in installments';
+
+  @override
+  String get installmentMonthsLabel => 'Months';
+
+  @override
+  String installmentPreview(Object months, Object amount, Object lastAmount) {
+    return '$months monthly payments of $amount (last $lastAmount)';
+  }
+
+  @override
+  String get installmentPlanTitle => 'Installment plan';
+
+  @override
+  String installmentProgress(Object paid, Object total) {
+    return '$paid of $total paid';
+  }
+
+  @override
+  String installmentNoLabel(Object no) {
+    return 'Installment $no';
+  }
+
+  @override
+  String installmentCreated(Object months) {
+    return 'Installment plan created ($months monthly payments).';
+  }
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get deletePlan => 'Delete plan';
+
+  @override
+  String deletePlanBody(Object count) {
+    return 'This deletes all $count installment transactions. This cannot be undone.';
+  }
+
+  @override
   String get walletTypeCash => 'Cash';
 
   @override

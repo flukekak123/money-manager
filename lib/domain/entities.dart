@@ -88,6 +88,8 @@ class TransactionEntry {
     required this.walletId,
     required this.date,
     this.note,
+    this.installmentPlanId,
+    this.installmentNo,
   });
 
   final int id;
@@ -98,8 +100,39 @@ class TransactionEntry {
   final DateTime date;
   final String? note;
 
+  /// Non-null when this entry was generated from an [InstallmentPlan].
+  /// Such entries are managed through the plan only (BR-I4).
+  final int? installmentPlanId;
+
+  /// 1-based position within the plan (for "k/N" display).
+  final int? installmentNo;
+
+  bool get isInstallment => installmentPlanId != null;
+
   /// Signed value: positive for income, negative for expense.
   int get signedMinor => kind == TransactionKind.income ? amountMinor : -amountMinor;
+}
+
+/// An expense split into equal monthly installments (BR-I1..BR-I9).
+/// Plans are immutable (BR-I6): change = delete + recreate.
+class InstallmentPlan {
+  const InstallmentPlan({
+    required this.id,
+    required this.totalMinor,
+    required this.months,
+    required this.categoryId,
+    required this.walletId,
+    required this.startDate,
+    this.note,
+  });
+
+  final int id;
+  final int totalMinor;
+  final int months; // 3, 6, 10, or 12 (BR-I1)
+  final int categoryId;
+  final int walletId;
+  final DateTime startDate; // purchase date = first installment due date
+  final String? note;
 }
 
 class Budget {

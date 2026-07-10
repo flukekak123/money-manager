@@ -206,3 +206,124 @@
 **Context**: CONSTRUCTION - Code Generation, unit money-manager, Cycle 3
 
 ---
+## Initial User Request (Cycle 4)
+**Timestamp**: 2026-07-10T00:00:00Z
+**User Input**: "add expense that have installment like 3,6,10,12 month"
+**AI Response**: "Invoked aidlc skill. Workspace detection: brownfield, existing AI-DLC state (Cycles 1-3 complete), no installment/recurring code exists. Proceeding to Requirements Analysis (standard depth) as Cycle 4."
+**Context**: INCEPTION - Workspace Detection, Cycle 4 (installment expenses)
+
+---
+
+## Requirements Analysis — Clarifying Questions (Cycle 4)
+**Timestamp**: 2026-07-10T00:01:00Z
+**AI Response**: "Created aidlc-docs/inception/requirements/installment-requirements-questions.md with 7 questions (storage model, rounding, month counts, start date, edit/delete, interest, wallet balance timing). Waiting for answers."
+**Context**: INCEPTION - Requirements Analysis, Cycle 4
+
+---
+## Requirements Answers Received (Cycle 4)
+**Timestamp**: 2026-07-10T00:05:00Z
+**User Input**: "done" (answers in installment-requirements-questions.md: Q1=A plan + N upfront transactions, Q2=B remainder to last installment, Q3=A fixed presets 3/6/10/12, Q4=A first installment on purchase date, Q5=A whole-plan edit/delete only, Q6=A no interest even split, Q7=A gradual wallet balance per month)
+**AI Response**: "No contradictions detected. Generating installment-requirements.md."
+**Context**: INCEPTION - Requirements Analysis, Cycle 4
+
+---
+## Requirements Analysis Complete — Approval Prompt (Cycle 4)
+**Timestamp**: 2026-07-10T00:06:00Z
+**AI Response**: "Created installment-requirements.md (FR-1..FR-5, NFR-1..NFR-6). Asked user: Request Changes / Add User Stories / Approve & Continue to Workflow Planning."
+**Context**: INCEPTION - Requirements Analysis, Cycle 4 — awaiting approval
+
+---
+## Requirements Approval (Cycle 4)
+**Timestamp**: 2026-07-10T00:10:00Z
+**User Input**: "Approve & Continue"
+**AI Response**: "Requirements approved. Proceeding to Workflow Planning."
+**Context**: INCEPTION - Requirements Analysis approved, Cycle 4
+
+---
+## Workflow Planning Complete — Approval Prompt (Cycle 4)
+**Timestamp**: 2026-07-10T00:15:00Z
+**AI Response**: "Created cycle4-execution-plan.md. Execute: Functional Design, Code Generation, Build & Test. Skip: User Stories, Application Design, Units Generation, NFR Requirements/Design, Infrastructure Design. Risk medium (schema migration + backup v2). Asked: Request Changes / Add Skipped Stages / Approve & Continue."
+**Context**: INCEPTION - Workflow Planning, Cycle 4 — awaiting approval
+
+---
+## Workflow Plan Approval (Cycle 4)
+**Timestamp**: 2026-07-10T00:20:00Z
+**User Input**: "Approve & Continue"
+**AI Response**: "Plan approved. Proceeding to Functional Design."
+**Context**: INCEPTION - Workflow Planning approved, Cycle 4
+
+---
+## Functional Design Plan + Questions (Cycle 4)
+**Timestamp**: 2026-07-10T00:25:00Z
+**AI Response**: "Created cycle4-functional-design-plan.md with 6 design steps and 3 questions (entry UI location, plan edit semantics, plan management location). Flagged BR-T5 (no future dates) conflict with gradual installments; resolution: exemption for plan-generated transactions. Waiting for answers."
+**Context**: CONSTRUCTION - Functional Design (Part 1 Planning), Cycle 4
+
+---
+## Functional Design Answers + Artifacts (Cycle 4)
+**Timestamp**: 2026-07-10T00:30:00Z
+**User Input**: "let use recommend" (accepted recommended answers: Q1=A toggle in expense form, Q2=A immutable plan delete+recreate, Q3=A transaction detail sheet)
+**AI Response**: "Recorded answers in cycle4-functional-design-plan.md, all design steps checked. Created cycle4-installment-design.md: InstallmentPlan entity, TransactionEntry +installmentPlanId/installmentNo, InstallmentCalculator (split remainder-to-last, date clamp), BR-I1..BR-I9, InstallmentRepository, schema v1->v2 migration, backup JSON v2, frontend components (toggle+presets, k/N badge, plan sheet), test plan. Asked: Request Changes or Continue to Code Generation."
+**Context**: CONSTRUCTION - Functional Design, Cycle 4 — awaiting approval
+
+---
+## Functional Design Approval (Cycle 4)
+**Timestamp**: 2026-07-10T00:35:00Z
+**User Input**: "Continue to Next Stage"
+**AI Response**: "Functional design approved. Proceeding to Code Generation (Part 1 Planning)."
+**Context**: CONSTRUCTION - Functional Design approved, Cycle 4
+
+---
+## Code Generation Plan — Approval Prompt (Cycle 4)
+**Timestamp**: 2026-07-10T00:40:00Z
+**AI Response**: "Created cycle4-code-generation-plan.md: 6 steps, 17 sub-steps. Domain (entities, calculator, repo interface), Data (schema v2 + migration + codegen, repo impl, backup v2), Application (providers, controller), Presentation (edit screen toggle, tile badge, plan sheet, l10n EN+TH), Tests (calculator, repo atomicity/guards, backup round-trip), Verification (analyze/test/build web) + docs. Asked for plan approval before generation."
+**Context**: CONSTRUCTION - Code Generation Part 1 (Planning), Cycle 4 — awaiting approval
+
+---
+## Code Generation Plan Approval (Cycle 4)
+**Timestamp**: 2026-07-10T00:45:00Z
+**User Input**: "Approve & Generate"
+**AI Response**: "Plan approved. Executing Part 2 Generation, steps 1-6."
+**Context**: CONSTRUCTION - Code Generation Part 2, Cycle 4
+
+---
+## Code Generation — Complete (Cycle 4)
+**Timestamp**: 2026-07-10T01:30:00Z
+**AI Response**: "Executed 17-sub-step plan. Domain: InstallmentPlan entity, TransactionEntry +installmentPlanId/installmentNo, InstallmentCalculator (remainder-to-last split, day-clamped due dates), InstallmentRepository interface. Data: schema v2 (InstallmentPlans table + 2 txn columns, additive migration), build_runner regen, InstallmentRepositoryImpl (atomic createPlan/deletePlan), BR-I4 guards in TransactionRepositoryImpl, backup JSON v2 with v1 import. App: providers + saveInstallment/deleteInstallmentPlan controller ops. UI: installments toggle + 3/6/10/12 picker + live preview in edit screen, k/N badge in tiles, installment_plan_sheet.dart (progress + delete), tap/dismiss routing in transactions + home screens, 11 new l10n keys EN+TH. Tests: +16 (calculator 10, repo 5, backup v1-compat) = 47/47 pass; smoke test needed _FakeInstallmentRepo override. analyze clean. flutter build web requires --no-tree-shake-icons — verified pre-existing toolchain issue (HEAD fails identically); documented in CLAUDE.md. Wrote cycle4-code-summary.md."
+**Approval Prompt**: "Cycle 4 code generation complete — Request Changes or Continue to Build and Test?"
+**Context**: CONSTRUCTION - Code Generation, unit money-manager, Cycle 4 — awaiting approval
+
+---
+## Code Generation Approval (Cycle 4)
+**Timestamp**: 2026-07-10T01:35:00Z
+**User Input**: "Continue to Next Stage"
+**AI Response**: "Code generation approved. Proceeding to Build and Test."
+**Context**: CONSTRUCTION - Code Generation approved, Cycle 4
+
+---
+## Build and Test Stage (Cycle 4)
+**Timestamp**: 2026-07-10T01:45:00Z
+**Build Status**: Success (analyze clean; flutter build web --no-tree-shake-icons OK)
+**Test Status**: Pass (47/47)
+**Files Generated**:
+- build-and-test/build-instructions.md
+- build-and-test/unit-test-instructions.md
+- build-and-test/integration-test-instructions.md
+- build-and-test/build-and-test-summary.md
+(performance/contract/security instructions: N/A — offline single-user app, no API surface)
+**Approval Prompt**: "Build and test instructions complete. Ready to proceed to Operations stage?"
+**Context**: CONSTRUCTION - Build and Test, Cycle 4 — awaiting approval
+
+---
+## Build and Test Approval (Cycle 4)
+**Timestamp**: 2026-07-10T01:50:00Z
+**User Input**: "Approve & Continue"
+**AI Response**: "Build and test approved. Operations is a placeholder — committing Cycle 4 and closing the cycle."
+**Context**: CONSTRUCTION complete, Cycle 4 — Operations placeholder
+
+---
+## Cycle 4 Closed
+**Timestamp**: 2026-07-10T01:55:00Z
+**AI Response**: "Committed 4ac1ac4 (38 files, +3966/-646). Cycle 4 (installment expenses) complete: INCEPTION + CONSTRUCTION all stages done, Operations placeholder. Not pushed/deployed."
+**Context**: Cycle 4 complete
+
+---

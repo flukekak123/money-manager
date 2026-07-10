@@ -20,8 +20,12 @@ flutter analyze                 # static analysis (lints from flutter_lints)
 flutter test                    # all unit + widget tests
 flutter test test/money_test.dart          # single test file
 flutter test --plain-name "budget warns"   # single test by name substring
-flutter build web               # production web build → build/web (static host)
+flutter build web --no-tree-shake-icons    # production web build → build/web (static host)
 ```
+
+`--no-tree-shake-icons` is required: category/wallet icons are stored as
+codePoints in the DB and rebuilt via `iconFromCodePoint` (`theme.dart`), a
+non-constant `IconData` the icon tree-shaker rejects.
 
 `database.g.dart` is committed; rerun `build_runner` whenever a `Table` in
 `lib/data/database.dart` changes and bump `schemaVersion` + add a migration.
@@ -127,6 +131,15 @@ English + Thai via Flutter `gen-l10n`. Strings live in `lib/l10n/app_en.arb`
   column; map back with `Enum.values[i]`. Order of enum values is a schema
   contract — don't reorder.
 - Budget thresholds are fixed: warn ≥80%, over ≥100% (`BudgetProgress.status`).
+- **Installments** (schema v2): an expense can be split over 3/6/10/12 months —
+  one `InstallmentPlans` row + N future-dated expense transactions generated
+  upfront (`installmentPlanId`/`installmentNo` on `Transactions`). Split math
+  lives in `domain/services/installment_calculator.dart` (even split, remainder
+  to LAST installment, month-day clamped). Linked transactions are never edited
+  or deleted individually (BR-I4 — repo update/delete throws); manage via the
+  plan (`InstallmentRepository.createPlan/deletePlan`, both atomic). Plans are
+  immutable: change = delete + recreate. Backup JSON is `version: 2` (imports
+  v1 too).
 - Categories/wallets are **archived, not hard-deleted**, when in use; watch
   queries exclude archived unless `includeArchived: true`.
 - Tests construct the DB with `AppDatabase.forTesting(NativeDatabase.memory())`;

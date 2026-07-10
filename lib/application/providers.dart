@@ -5,6 +5,7 @@ import '../core/money.dart';
 import '../data/database.dart' show AppDatabase;
 import '../data/repositories/budget_repository_impl.dart';
 import '../data/repositories/category_repository_impl.dart';
+import '../data/repositories/installment_repository_impl.dart';
 import '../data/repositories/transaction_repository_impl.dart';
 import '../data/repositories/wallet_repository_impl.dart';
 import '../data/backup_service.dart';
@@ -43,6 +44,9 @@ final walletRepositoryProvider = Provider<WalletRepository>(
 
 final budgetRepositoryProvider = Provider<BudgetRepository>(
     (ref) => BudgetRepositoryImpl(ref.watch(databaseProvider)));
+
+final installmentRepositoryProvider = Provider<InstallmentRepository>(
+    (ref) => InstallmentRepositoryImpl(ref.watch(databaseProvider)));
 
 // --- Settings ---------------------------------------------------------------
 
@@ -93,6 +97,21 @@ final monthTransactionsProvider =
 
 final monthBudgetsProvider = StreamProvider.family<List<Budget>, String>(
     (ref, month) => ref.watch(budgetRepositoryProvider).watchByMonth(month));
+
+final installmentPlansProvider = StreamProvider<List<InstallmentPlan>>(
+    (ref) => ref.watch(installmentRepositoryProvider).watchAll());
+
+/// Installments (transactions) of one plan, ordered by installmentNo.
+final planInstallmentsProvider =
+    StreamProvider.family<List<TransactionEntry>, int>((ref, planId) =>
+        ref.watch(installmentRepositoryProvider).watchInstallments(planId));
+
+/// Lookup map planId -> InstallmentPlan (for "k/N" badges).
+final installmentPlansByIdProvider = Provider<Map<int, InstallmentPlan>>((ref) {
+  final plans = ref.watch(installmentPlansProvider).asData?.value ??
+      const <InstallmentPlan>[];
+  return {for (final p in plans) p.id: p};
+});
 
 final walletBalanceProvider = StreamProvider.family<int, int>(
     (ref, walletId) =>
@@ -145,6 +164,7 @@ final walletsByIdProvider = Provider<Map<int, Wallet>>((ref) {
 final transactionControllerProvider = Provider<TransactionController>(
   (ref) => TransactionController(
     repository: ref.watch(transactionRepositoryProvider),
+    installments: ref.watch(installmentRepositoryProvider),
     money: ref.watch(moneyFormatterProvider),
   ),
 );

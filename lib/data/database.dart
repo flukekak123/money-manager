@@ -24,6 +24,19 @@ class Categories extends Table {
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
 }
 
+class InstallmentPlans extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get totalMinor => integer()();
+  IntColumn get months => integer()(); // 3, 6, 10, or 12 (BR-I1)
+  IntColumn get categoryId =>
+      integer().references(Categories, #id)();
+  IntColumn get walletId => integer().references(Wallets, #id)();
+  DateTimeColumn get startDate => dateTime()();
+  TextColumn get note => text().nullable().withLength(max: 200)();
+  DateTimeColumn get createdAt =>
+      dateTime().withDefault(currentDateAndTime)();
+}
+
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get amountMinor => integer()();
@@ -35,6 +48,10 @@ class Transactions extends Table {
   TextColumn get note => text().nullable().withLength(max: 200)();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime)();
+  // Set when generated from an installment plan (BR-I4/I5); null otherwise.
+  IntColumn get installmentPlanId =>
+      integer().nullable().references(InstallmentPlans, #id)();
+  IntColumn get installmentNo => integer().nullable()(); // 1-based
 }
 
 class Budgets extends Table {
@@ -50,7 +67,8 @@ class Budgets extends Table {
       ];
 }
 
-@DriftDatabase(tables: [Wallets, Categories, Transactions, Budgets])
+@DriftDatabase(
+    tables: [Wallets, Categories, InstallmentPlans, Transactions, Budgets])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
@@ -58,13 +76,21 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
           await SeedData.populate(this);
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // v2: installment plans (additive only).
+            await m.createTable(installmentPlans);
+            await m.addColumn(transactions, transactions.installmentPlanId);
+            await m.addColumn(transactions, transactions.installmentNo);
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');

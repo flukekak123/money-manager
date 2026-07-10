@@ -560,6 +560,66 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get themeDark;
 
+  /// No description provided for @payInInstallments.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay in installments'**
+  String get payInInstallments;
+
+  /// No description provided for @installmentMonthsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Months'**
+  String get installmentMonthsLabel;
+
+  /// No description provided for @installmentPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} monthly payments of {amount} (last {lastAmount})'**
+  String installmentPreview(Object months, Object amount, Object lastAmount);
+
+  /// No description provided for @installmentPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment plan'**
+  String get installmentPlanTitle;
+
+  /// No description provided for @installmentProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} of {total} paid'**
+  String installmentProgress(Object paid, Object total);
+
+  /// No description provided for @installmentNoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment {no}'**
+  String installmentNoLabel(Object no);
+
+  /// No description provided for @installmentCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment plan created ({months} monthly payments).'**
+  String installmentCreated(Object months);
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @deletePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete plan'**
+  String get deletePlan;
+
+  /// No description provided for @deletePlanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes all {count} installment transactions. This cannot be undone.'**
+  String deletePlanBody(Object count);
+
   /// No description provided for @walletTypeCash.
   ///
   /// In en, this message translates to:

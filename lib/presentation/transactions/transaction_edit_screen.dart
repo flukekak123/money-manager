@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/providers.dart';
 import '../../domain/entities.dart';
+import '../../domain/services/installment_calculator.dart';
 import '../../l10n/gen/app_localizations.dart';
 
 class TransactionEditScreen extends ConsumerStatefulWidget {
@@ -25,8 +26,14 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
   int? _walletId;
   late DateTime _date;
   String? _error;
+  bool _installments = false;
+  int _months = InstallmentCalculator.allowedMonths.first;
 
   bool get _isEditing => widget.existing != null;
+
+  // Installment option only when creating a new expense (FR-1, Q1=A).
+  bool get _installmentsAvailable =>
+      !_isEditing && _kind == TransactionKind.expense;
 
   @override
   void initState() {
@@ -64,18 +71,55 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
     }
 
     try {
-      await ref.read(transactionControllerProvider).save(
-            id: widget.existing?.id,
-            amountText: _amountCtrl.text,
-            kind: _kind,
-            category: category,
-            wallet: wallet,
-            date: _date,
-            note: _noteCtrl.text,
-          );
-      if (mounted) Navigator.of(context).pop();
+      final controller = ref.read(transactionControllerProvider);
+      final asInstallments = _installmentsAvailable && _installments;
+      if (asInstallments) {
+        await controller.saveInstallment(
+          amountText: _amountCtrl.text,
+          months: _months,
+          category: category,
+          wallet: wallet,
+          date: _date,
+          note: _noteCtrl.text,
+        );
+      } else {
+        await controller.save(
+          id: widget.existing?.id,
+          amountText: _amountCtrl.text,
+          kind: _kind,
+          category: category,
+          wallet: wallet,
+          date: _date,
+          note: _noteCtrl.text,
+        );
+      }
+      if (mounted) {
+        if (asInstallments) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(AppLocalizations.of(context)
+                  .installmentCreated('$_months'))));
+        }
+        Navigator.of(context).pop();
+      }
     } on DomainException catch (e) {
       setState(() => _error = e.message);
+    }
+  }
+
+  /// Live "{N} monthly payments of X (last Y)" preview; null while the amount
+  /// is not yet a valid splittable total.
+  String? _installmentPreview(AppLocalizations l) {
+    final money = ref.read(moneyFormatterProvider);
+    try {
+      final total = money.parse(_amountCtrl.text);
+      final amounts =
+          const InstallmentCalculator().splitAmounts(total, _months);
+      return l.installmentPreview(
+          '$_months', money.format(amounts.first), money.format(amounts.last));
+    } on FormatException {
+      return null;
+    } on DomainException {
+      return null;
     }
   }
 
@@ -145,7 +189,36 @@ class _TransactionEditScreenState extends ConsumerState<TransactionEditScreen> {
               ),
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? l.enterAmount : null,
+              onChanged: (_) {
+                if (_installments) setState(() {});
+              },
             ),
+            if (_installmentsAvailable) ...[
+              const SizedBox(height: 8),
+              SwitchListTile(
+                key: const Key('installments-toggle'),
+                title: Text(l.payInInstallments),
+                contentPadding: EdgeInsets.zero,
+                value: _installments,
+                onChanged: (v) => setState(() => _installments = v),
+              ),
+              if (_installments) ...[
+                SegmentedButton<int>(
+                  key: const Key('installment-months-picker'),
+                  segments: [
+                    for (final m in InstallmentCalculator.allowedMonths)
+                      ButtonSegment(value: m, label: Text('$m')),
+                  ],
+                  selected: {_months},
+                  onSelectionChanged: (s) =>
+                      setState(() => _months = s.first),
+                ),
+                const SizedBox(height: 8),
+                if (_installmentPreview(l) case final preview?)
+                  Text(preview,
+                      style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ],
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
               key: const Key('category-dropdown'),

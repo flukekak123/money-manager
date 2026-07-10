@@ -5,6 +5,7 @@ import '../../application/providers.dart';
 import '../../core/date_utils.dart';
 import '../../domain/entities.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../transactions/installment_plan_sheet.dart';
 import '../transactions/transaction_edit_screen.dart';
 import '../transactions/transaction_tile.dart';
 import '../widgets/empty_state.dart';
@@ -56,11 +57,19 @@ class HomeScreen extends ConsumerWidget {
                   .map((t) => TransactionTile(
                         entry: t,
                         category: catsById[t.categoryId],
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => TransactionEditScreen(existing: t),
-                          ),
-                        ),
+                        plan: t.installmentPlanId == null
+                            ? null
+                            : ref.watch(installmentPlansByIdProvider)[
+                                t.installmentPlanId],
+                        onTap: () => t.isInstallment
+                            ? showInstallmentPlanSheet(
+                                context, t.installmentPlanId!)
+                            : Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      TransactionEditScreen(existing: t),
+                                ),
+                              ),
                       ))
                   .toList(),
             );

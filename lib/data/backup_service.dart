@@ -15,13 +15,15 @@ class BackupService {
 
   final AppDatabase _db;
 
-  /// Current backup schema version.
-  static const int schemaVersion = 1;
+  /// Current backup schema version. v2 adds installmentPlans and the
+  /// installmentPlanId/installmentNo transaction fields.
+  static const int schemaVersion = 2;
 
   /// Reads all tables and returns a pretty-printed JSON string.
   Future<String> exportJson() async {
     final wallets = await _db.select(_db.wallets).get();
     final categories = await _db.select(_db.categories).get();
+    final installmentPlans = await _db.select(_db.installmentPlans).get();
     final transactions = await _db.select(_db.transactions).get();
     final budgets = await _db.select(_db.budgets).get();
 
@@ -51,6 +53,19 @@ class BackupService {
             'archived': c.archived,
           },
       ],
+      'installmentPlans': [
+        for (final p in installmentPlans)
+          {
+            'id': p.id,
+            'totalMinor': p.totalMinor,
+            'months': p.months,
+            'categoryId': p.categoryId,
+            'walletId': p.walletId,
+            'startDate': p.startDate.toIso8601String(),
+            'note': p.note,
+            'createdAt': p.createdAt.toIso8601String(),
+          },
+      ],
       'transactions': [
         for (final t in transactions)
           {
@@ -62,6 +77,8 @@ class BackupService {
             'date': t.date.toIso8601String(),
             'note': t.note,
             'createdAt': t.createdAt.toIso8601String(),
+            'installmentPlanId': t.installmentPlanId,
+            'installmentNo': t.installmentNo,
           },
       ],
       'budgets': [
@@ -93,12 +110,16 @@ class BackupService {
     if (decoded is! Map) {
       throw const DomainException('Invalid or corrupt backup file');
     }
-    if (decoded['version'] != schemaVersion) {
+    final version = decoded['version'];
+    // v1 backups (pre-installments) remain importable.
+    if (version != 1 && version != schemaVersion) {
       throw const DomainException('Unsupported backup version');
     }
 
     final wallets = _asList(decoded['wallets']);
     final categories = _asList(decoded['categories']);
+    final installmentPlans =
+        version == 1 ? const <dynamic>[] : _asList(decoded['installmentPlans']);
     final transactions = _asList(decoded['transactions']);
     final budgets = _asList(decoded['budgets']);
 
@@ -107,6 +128,7 @@ class BackupService {
         // Delete children before parents (FK order).
         await _db.delete(_db.budgets).go();
         await _db.delete(_db.transactions).go();
+        await _db.delete(_db.installmentPlans).go();
         await _db.delete(_db.categories).go();
         await _db.delete(_db.wallets).go();
 
@@ -134,6 +156,19 @@ class BackupService {
                 archived: Value(_bool(m, 'archived')),
               ));
         }
+        for (final p in installmentPlans) {
+          final m = _asMap(p);
+          await _db.into(_db.installmentPlans).insert(InstallmentPlansCompanion(
+                id: Value(_int(m, 'id')),
+                totalMinor: Value(_int(m, 'totalMinor')),
+                months: Value(_int(m, 'months')),
+                categoryId: Value(_int(m, 'categoryId')),
+                walletId: Value(_int(m, 'walletId')),
+                startDate: Value(_dateTime(m, 'startDate')),
+                note: Value(m['note'] as String?),
+                createdAt: Value(_dateTime(m, 'createdAt')),
+              ));
+        }
         for (final t in transactions) {
           final m = _asMap(t);
           await _db.into(_db.transactions).insert(TransactionsCompanion(
@@ -145,6 +180,8 @@ class BackupService {
                 date: Value(_dateTime(m, 'date')),
                 note: Value(m['note'] as String?),
                 createdAt: Value(_dateTime(m, 'createdAt')),
+                installmentPlanId: Value(_intOrNull(m, 'installmentPlanId')),
+                installmentNo: Value(_intOrNull(m, 'installmentNo')),
               ));
         }
         for (final b in budgets) {
@@ -180,6 +217,13 @@ class BackupService {
 
   static int _int(Map<String, dynamic> m, String key) {
     final v = m[key];
+    if (v is int) return v;
+    throw const DomainException('Invalid or corrupt backup file');
+  }
+
+  static int? _intOrNull(Map<String, dynamic> m, String key) {
+    final v = m[key];
+    if (v == null) return null;
     if (v is int) return v;
     throw const DomainException('Invalid or corrupt backup file');
   }

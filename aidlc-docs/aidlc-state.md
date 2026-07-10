@@ -28,10 +28,21 @@
 - **Unit(s)**: single unit `money-manager`
 
 ## Current Status
-- **Lifecycle Phase**: CONSTRUCTION (Cycle 2 — Web/PWA + Backup)
-- **Current Stage**: Cycle 2 Code Generation Complete — awaiting approval
-- **Next Stage**: Cycle 2 Build and Test
+- **Lifecycle Phase**: CONSTRUCTION (Cycle 4 — Installment expenses)
+- **Current Stage**: Cycle 4 COMPLETE (commit 4ac1ac4)
+- **Next Stage**: idle — awaiting next request
 - **Cycle 1 (v1 app)**: Complete
+- **Cycle 2 (Web/PWA + Backup)**: Complete
+- **Cycle 3 (Thai i18n)**: Complete
+- **Cycle 4 (Installment expenses)**: Complete
+
+## Cycle 4 — Installment Expenses
+- [x] Workspace Detection (Brownfield, Cycles 1-3 artifacts loaded)
+- [x] Requirements Analysis (installment-requirements.md, FR-1..FR-5 — approved)
+- [x] Workflow Planning (cycle4-execution-plan.md — approved)
+- [x] Functional Design (cycle4-installment-design.md — approved)
+- [x] Code Generation (analyze clean, 47/47 tests, web build OK w/ --no-tree-shake-icons)
+- [x] Build and Test (build-and-test/ docs, 47/47 pass, web build success)
 
 ## Cycle 2 — Web/PWA + Backup
 - [x] Workspace Detection (Brownfield)

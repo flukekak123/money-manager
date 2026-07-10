@@ -25,6 +25,21 @@ abstract class TransactionRepository {
   Future<void> delete(int id);
 }
 
+abstract class InstallmentRepository {
+  Stream<List<InstallmentPlan>> watchAll();
+  Future<InstallmentPlan?> getById(int id);
+
+  /// Installment transactions of a plan, ordered by installmentNo.
+  Stream<List<TransactionEntry>> watchInstallments(int planId);
+
+  /// Inserts the plan and generates its N linked expense transactions in one
+  /// DB transaction (BR-I5). Returns the plan id.
+  Future<int> createPlan(InstallmentPlan plan);
+
+  /// Deletes the plan and ALL its linked transactions atomically (BR-I5).
+  Future<void> deletePlan(int id);
+}
+
 abstract class BudgetRepository {
   Stream<List<Budget>> watchByMonth(String yyyymm);
   Future<void> upsert(Budget budget);

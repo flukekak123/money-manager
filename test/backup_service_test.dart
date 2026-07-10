@@ -1,8 +1,10 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:money_manager/data/backup_service.dart';
-import 'package:money_manager/data/database.dart' hide Budget;
+import 'package:money_manager/data/database.dart'
+    hide Budget, InstallmentPlan;
 import 'package:money_manager/data/repositories/budget_repository_impl.dart';
+import 'package:money_manager/data/repositories/installment_repository_impl.dart';
 import 'package:money_manager/data/repositories/transaction_repository_impl.dart';
 import 'package:money_manager/domain/entities.dart';
 
@@ -34,6 +36,17 @@ void main() {
       limitMinor: 50000,
       month: '2026-07',
     ));
+    // v2: an installment plan with its 3 generated transactions.
+    final planId = await InstallmentRepositoryImpl(source).createPlan(
+      InstallmentPlan(
+        id: 0,
+        totalMinor: 100000,
+        months: 3,
+        categoryId: 1,
+        walletId: 1,
+        startDate: DateTime(2026, 6, 15),
+      ),
+    );
 
     final json = await BackupService(source).exportJson();
 
@@ -51,15 +64,44 @@ void main() {
     expect(tgtCats.length, 9);
 
     final tgtTxns = await target.select(target.transactions).get();
-    expect(tgtTxns.length, 1);
-    expect(tgtTxns.first.amountMinor, 1250);
-    expect(tgtTxns.first.categoryId, 1);
-    expect(tgtTxns.first.note, 'lunch');
+    expect(tgtTxns.length, 4); // 1 manual + 3 installments
+    final manual = tgtTxns.where((t) => t.installmentPlanId == null).toList();
+    expect(manual.length, 1);
+    expect(manual.first.amountMinor, 1250);
+    expect(manual.first.note, 'lunch');
+
+    final tgtPlans = await target.select(target.installmentPlans).get();
+    expect(tgtPlans.length, 1);
+    expect(tgtPlans.first.id, planId);
+    expect(tgtPlans.first.totalMinor, 100000);
+    final installments =
+        tgtTxns.where((t) => t.installmentPlanId == planId).toList();
+    expect(installments.length, 3);
+    expect(installments.map((t) => t.amountMinor).reduce((a, b) => a + b),
+        100000);
 
     final tgtBudgets = await target.select(target.budgets).get();
     expect(tgtBudgets.length, 1);
     expect(tgtBudgets.first.limitMinor, 50000);
     expect(tgtBudgets.first.month, '2026-07');
+  });
+
+  test('v1 backup (no installment fields) still imports', () async {
+    await BackupService(source).importReplace(
+        '{"version": 1, "wallets": [{"id": 1, "name": "Cash", "type": 0, '
+        '"iconCodePoint": 1, "colorValue": 1, "archived": false}], '
+        '"categories": [{"id": 1, "name": "Food", "kind": 1, '
+        '"iconCodePoint": 1, "colorValue": 1, "isDefault": true, '
+        '"archived": false}], '
+        '"transactions": [{"id": 1, "amountMinor": 900, "kind": 1, '
+        '"categoryId": 1, "walletId": 1, "date": "2026-07-01T00:00:00.000", '
+        '"note": null, "createdAt": "2026-07-01T00:00:00.000"}], '
+        '"budgets": []}');
+
+    final txns = await source.select(source.transactions).get();
+    expect(txns.length, 1);
+    expect(txns.first.installmentPlanId, isNull);
+    expect(await source.select(source.installmentPlans).get(), isEmpty);
   });
 
   test('import rejects unsupported version', () async {

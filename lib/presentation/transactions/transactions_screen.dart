@@ -6,6 +6,7 @@ import '../../application/providers.dart';
 import '../../domain/entities.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../widgets/empty_state.dart';
+import 'installment_plan_sheet.dart';
 import 'transaction_edit_screen.dart';
 import 'transaction_tile.dart';
 
@@ -16,6 +17,7 @@ class TransactionsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final txnsAsync = ref.watch(allTransactionsProvider);
     final catsById = ref.watch(categoriesByIdProvider);
+    final plansById = ref.watch(installmentPlansByIdProvider);
     final l = AppLocalizations.of(context);
 
     return txnsAsync.when(
@@ -52,7 +54,11 @@ class TransactionsScreen extends ConsumerWidget {
                 ),
                 ...items.map((t) => Dismissible(
                       key: Key('dismiss-${t.id}'),
-                      direction: DismissDirection.endToStart,
+                      // Installments are managed via their plan (BR-I4):
+                      // no swipe-delete, tap opens the plan sheet.
+                      direction: t.isInstallment
+                          ? DismissDirection.none
+                          : DismissDirection.endToStart,
                       background: Container(
                         color: Colors.red,
                         alignment: Alignment.centerRight,
@@ -66,12 +72,18 @@ class TransactionsScreen extends ConsumerWidget {
                       child: TransactionTile(
                         entry: t,
                         category: catsById[t.categoryId],
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                TransactionEditScreen(existing: t),
-                          ),
-                        ),
+                        plan: t.installmentPlanId == null
+                            ? null
+                            : plansById[t.installmentPlanId],
+                        onTap: () => t.isInstallment
+                            ? showInstallmentPlanSheet(
+                                context, t.installmentPlanId!)
+                            : Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      TransactionEditScreen(existing: t),
+                                ),
+                              ),
                       ),
                     )),
               ],
